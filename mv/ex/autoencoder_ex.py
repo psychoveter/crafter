@@ -6,8 +6,8 @@ import torch
 from torch.utils.data import DataLoader
 
 import crafter
-from mv.utils import create_tensor_onehot, objects, object_weights
-from mv.autoencoder import create_datasets, CrafterEnvAutoencoder, CrafterEnvDataset
+from mv.utils import create_nparr_onehot, objects, object_weights
+from mv.autoencoder import create_datasets, CrafterEnvAutoencoderV0, CrafterEnvDataset
 import torch.nn.functional as F
 
 print(f"torch=={torch.__version__}")
@@ -30,7 +30,7 @@ params = {
     'learning_rate': [0.1, 0.9]
 }
 
-model = CrafterEnvAutoencoder(
+model = CrafterEnvAutoencoderV0(
     channels_size=[32, 64, 32],
     latent_size=8
 )

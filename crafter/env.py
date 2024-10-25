@@ -10,7 +10,7 @@ from . import worldgen
 
 # Gym is an optional dependency.
 try:
-  import gym
+  import gymnasium as gym
   DiscreteSpace = gym.spaces.Discrete
   BoxSpace = gym.spaces.Box
   DictSpace = gym.spaces.Dict

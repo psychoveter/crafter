@@ -4,6 +4,21 @@ from collections import Counter
 
 import ray
 
+"""
+Ray AWS config examples 
+  - https://github.com/ray-project/ray/tree/master/python/ray/autoscaler/aws
+  - https://docs.ray.io/en/latest/cluster/vms/references/ray-cluster-cli.html
+
+Submitting commands
+    ray up -v -y cluster.yaml
+    ray submit cluster.yaml example.py --start 
+    ray down -v -y cluster.yaml
+
+Docker image for Ray GPU 
+rayproject/ray-ml:latest-py311-gpu
+
+"""
+
 
 @ray.remote
 def get_host_name(x):
@@ -19,7 +34,7 @@ def wait_for_nodes(expected):
     while True:
         num_nodes = len(ray.nodes())
         if num_nodes < expected:
-            print(
+            print (
                 "{} nodes have joined so far, waiting for {} more.".format(
                     num_nodes, expected - num_nodes
                 )
@@ -31,7 +46,9 @@ def wait_for_nodes(expected):
 
 
 def main():
-    wait_for_nodes(4)
+    wait_for_nodes(1)
+
+    print(ray.cluster_resources())
 
     # Check that objects can be transferred from each node to each other node.
     for i in range(10):
@@ -46,5 +63,6 @@ def main():
 
 
 if __name__ == "__main__":
-    ray.init(address="localhost:6379")
+    # ray.init(address="localhost:6379")
+    ray.init()
     main()
