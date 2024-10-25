@@ -14,24 +14,12 @@ print(f"torch=={torch.__version__}")
 print(f"np=={np.__version__}")
 
 
-
-train_set, test_set = create_datasets(1000, 100)
+train_set, test_set = create_datasets(100, 100)
 train_loader = DataLoader(train_set, batch_size=16, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=16, shuffle=True)
 
-
-params = {
-    'batch_size': [16,32,64],
-    'hidden_channel_1': [8, 16, 32],
-    'hidden_channel_2': [32, 64],
-    'hidden_channel_3': [8, 16, 32],
-    'latent_size': [4, 8, 16, 32],
-    'dropout': [0.2, 0.5],
-    'learning_rate': [0.1, 0.9]
-}
-
 model = CrafterEnvAutoencoderV0(
-    channels_size=[32, 64, 32],
+    channels_size=[32, 64, 128, 64, 32],
     latent_size=8
 )
 sample = train_loader.__iter__().__next__()
@@ -41,7 +29,7 @@ print(res.shape)
 # l = crafter_onehot_loss(res, sample)
 
 #%%
-optimizer = torch.optim.ASGD(model.parameters(), lr=0.1)
+optimizer = torch.optim.ASGD(model.parameters(), lr=0.5)
 loss_fun = torch.nn.CrossEntropyLoss()
 
 losses = []

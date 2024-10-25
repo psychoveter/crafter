@@ -26,10 +26,12 @@ def crafter_onehot_loss(input, output):
     batch_size, width, height, channels = input.shape
     print(f"input shape: {input.shape}, output shape: {output.shape}")
     diff = input - output
-    norm = diff.norm()
-    diff = torch.pow(diff, 2) / norm
+    diff = (torch.pow(diff, 2))
 
+    # norm = diff.norm()
+    # diff = diff / norm
     # diff[:,:,:] *= torch_object_weights
+
     return diff.sum()
 
 def execute_sample_torch():
@@ -54,11 +56,6 @@ def train_autoencoder(config, is_ray_train = True):
     # get parameters
     learning_rate = config['learning_rate']
     batch_size = int(config['batch_size'])
-    hidden_channel_0 = int(config['hidden_channel_0'])
-    hidden_channel_1 = int(config['hidden_channel_1'])
-    hidden_channel_2 = int(config['hidden_channel_2'])
-    latent_size = int(config['latent_size'])
-    dropout = config['dropout']
     dataset_size = int(config['dataset_size'])
     max_epochs = int(config['max_epochs'])
 
@@ -85,9 +82,9 @@ def train_autoencoder(config, is_ray_train = True):
         ray.train.torch.prepare_data_loader(train_loader, move_to_device=False)
 
 
-    optimizer = torch.optim.ASGD(model.parameters(), lr=learning_rate)
-    # loss_fun = torch.nn.CrossEntropyLoss()
-    loss_fun = crafter_onehot_loss
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    loss_fun = torch.nn.CrossEntropyLoss()
+    # loss_fun = crafter_onehot_loss
 
     losses = []
     for epoch in range(max_epochs):
@@ -113,11 +110,13 @@ def train_autoencoder(config, is_ray_train = True):
 
 def run_torch_train():
     config = {
-        'learning_rate': .2,
+        'learning_rate': .1,
         'batch_size': 32,
         'hidden_channel_0': 32,
         'hidden_channel_1': 128,
-        'hidden_channel_2': 16,
+        'hidden_channel_2': 64,
+        'hidden_channel_3': 64,
+        'hidden_channel_4': 32,
         'latent_size': 8,
         'dropout': 0.2,
         'dataset_size': 1000,

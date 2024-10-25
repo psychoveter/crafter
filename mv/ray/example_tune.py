@@ -16,12 +16,14 @@ from mv.autoencoder import CrafterEnvAutoencoderV0, CrafterEnvDataset, create_da
 from mv.ray.example_pytorch import tune_autoencoder
 
 search_space = {
-    'learning_rate': tune.uniform(0.1, 2),
+    'learning_rate': tune.uniform(0.01, 1),
     'batch_size': tune.grid_search([16, 32]),
     'hidden_channel_0': tune.grid_search([32, 64]),
     'hidden_channel_1': tune.grid_search([32, 64, 128]),
-    'hidden_channel_2': tune.grid_search([16, 32, 64]),
-    'latent_size': tune.grid_search([4, 8, 16]),
+    'hidden_channel_2': tune.grid_search([32, 64]),
+    'hidden_channel_3': tune.grid_search([32, 64]),
+    'hidden_channel_4': tune.grid_search([16, 32]),
+    'latent_size': tune.uniform(4, 16),
     'dropout': tune.uniform(0.2, 0.5),
     'dataset_size': tune.grid_search([500, 1000]),
     'max_epochs': tune.grid_search([200, 300])
