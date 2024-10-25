@@ -90,18 +90,26 @@ class CrafterEnvEncoderV0(torch.nn.Module):
 
 class DecoderLayer(torch.nn.Module):
 
-    def __init__(self, channels_in, channels_out, padding=0):
+    def __init__(self,
+                 channels_in,
+                 channels_out,
+                 padding=0,
+                 activation=True):
         super(DecoderLayer, self).__init__()
+        self.activation = activation
         self.deconv = torch.nn.ConvTranspose2d(
             in_channels=channels_in,
             out_channels=channels_out,
             padding=padding,
             kernel_size=3)
-        self.relu = torch.nn.ReLU()
+
+        if self.activation:
+            self.relu = torch.nn.ReLU()
 
     def forward(self, x):
         x = self.deconv(x)
-        x = self.relu(x)
+        if self.activation:
+            x = self.relu(x)
         return x
 
 class CrafterEnvDecoderV0(torch.nn.Module):
@@ -116,7 +124,7 @@ class CrafterEnvDecoderV0(torch.nn.Module):
         self.layer4 = DecoderLayer(channels_size[3], channels_size[2], padding=0)
         self.layer3 = DecoderLayer(channels_size[2], channels_size[1], padding=1)
         self.layer2 = DecoderLayer(channels_size[1], channels_size[0], padding=0)
-        self.layer1 = DecoderLayer(channels_size[0], len(objects),     padding=0)
+        self.layer1 = DecoderLayer(channels_size[0], len(objects), padding=0, activation=False)
 
         self.sigmoid = torch.nn.Sigmoid()
 
