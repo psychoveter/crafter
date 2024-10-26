@@ -58,13 +58,18 @@ l1 = loss(t1, t2)
 print(l1.item())
 
 #%%
+import torch
 q1 = torch.zeros((10, 6 , 6), dtype=torch.float32)
 q2 = torch.zeros((10, 6 , 6), dtype=torch.float32)
 q1[1,:,:] = 1
-q2[1,:,:] = 1
+q2[2,:,:] = 1
+print(q1.sum())
 
 cel = torch.nn.CrossEntropyLoss()
-print(f"CE: {cel(q1, q2).item()}")
+with torch.no_grad():
+    q1 = q1.transpose(2, 0)
+    q2 = q2.transpose(2,0)
+    print(f"CE: {cel(q1, q2).item()}")
 
 mse = torch.nn.MSELoss()
 print(f"MSE: {mse(q1, q2).item()}")

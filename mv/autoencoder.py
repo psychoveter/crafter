@@ -44,10 +44,10 @@ class EncoderLayer(torch.nn.Module):
                  use_batch_norm: bool = True):
         super(EncoderLayer, self).__init__()
         self.conv = torch.nn.Conv2d(in_channels=channels_in, out_channels=channels_out, kernel_size=3, padding=padding)
-        self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(dropout)
         if use_batch_norm:
             self.batch_norm = torch.nn.BatchNorm2d(channels_out)
+        self.relu = torch.nn.ReLU()
 
     def forward(self, x):
         x = self.conv(x)
@@ -103,11 +103,16 @@ class DecoderLayer(torch.nn.Module):
             padding=padding,
             kernel_size=3)
 
+        self.conv = torch.nn.Conv2d(in_channels=channels_out, out_channels=channels_out, padding=1, kernel_size=3)
+        self.norm = torch.nn.BatchNorm2d(channels_out)
+
         if self.activation:
             self.relu = torch.nn.ReLU()
 
     def forward(self, x):
         x = self.deconv(x)
+        x = self.conv(x)
+        x = self.norm(x)
         if self.activation:
             x = self.relu(x)
         return x

@@ -65,8 +65,8 @@ def train_autoencoder(config, is_ray_train = True):
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True)
 
     # create model
-    # device = get_actual_device()
-    device = torch.device("cpu")
+    device = get_actual_device()
+    # device = torch.device("cpu")
     print(f"Device is {device}")
     model = create_autoencoder(config)
     model.to(device)
@@ -110,17 +110,17 @@ def train_autoencoder(config, is_ray_train = True):
 
 def run_torch_train():
     config = {
-        'learning_rate': .1,
-        'batch_size': 32,
-        'hidden_channel_0': 32,
-        'hidden_channel_1': 128,
-        'hidden_channel_2': 64,
-        'hidden_channel_3': 64,
-        'hidden_channel_4': 32,
-        'latent_size': 8,
-        'dropout': 0.2,
-        'dataset_size': 1000,
-        'max_epochs': 200
+            'batch_size': 32,
+            'dataset_size': 1000,
+            'dropout': 0.3,
+            'hidden_channel_0': 64,
+            'hidden_channel_1': 64,
+            'hidden_channel_2': 64,
+            'hidden_channel_3': 32,
+            'hidden_channel_4': 32,
+            'latent_size': 64,
+            'learning_rate': 0.01,
+            'max_epochs': 500
     }
 
     # scaling_config = ScalingConfig(num_workers=1, use_gpu=True)
