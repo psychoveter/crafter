@@ -129,7 +129,7 @@ class Textures:
       self._textures[(filename.stem, image.shape[:2])] = image
 
   def get(self, name, size):
-    if name is None:
+    if name is None or name == 'None':
       name = 'unknown'
     size = int(size[0]), int(size[1])
     key = name, size

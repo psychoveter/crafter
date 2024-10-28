@@ -23,7 +23,7 @@ search_space = {
     'hidden_channel_2': tune.grid_search([32, 64]),
     'hidden_channel_3': tune.grid_search([32, 64]),
     'hidden_channel_4': tune.grid_search([16, 32]),
-    'latent_size': tune.uniform(4, 16),
+    'latent_size': tune.uniform(4, 64),
     'dropout': tune.uniform(0.2, 0.5),
     'dataset_size': tune.grid_search([500, 1000]),
     'max_epochs': tune.grid_search([200, 300])

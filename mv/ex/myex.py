@@ -3,7 +3,7 @@ import numpy as np
 from numpy._typing import ArrayLike
 
 import crafter
-from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid
+from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid, sample_nparr_onehot, miss_rate_all
 from PIL import Image
 import matplotlib.pyplot as plt
 from mv.utils import objects, get_object_dict
@@ -35,13 +35,21 @@ Image.fromarray(line).show()
 print(miss_rate_all(imgs[:4], imgs[1:]))
 
 #%%
-# translate into one hot matrix
-npr = create_nparr_onehot(env)
-print(npr.shape)
+import random
 
-grass = npr[2,:,:]
-print(npr.shape)
-print(grass)
+env = crafter.Env()
+env.reset()
+pos = [
+    random.randint(4, env._size[0] - 4),
+    random.randint(4, env._size[1] - 4)
+]
+print(pos)
+
+npr = create_nparr_onehot(env, pos=pos)
+print(npr)
+img = render_nparr_onehot(npr, env)
+Image.fromarray(img).show()
+
 
 #%% MSE loss amount
 import torch

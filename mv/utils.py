@@ -3,6 +3,7 @@ import numpy as np
 from collections import OrderedDict
 import crafter
 import torch
+import random
 from numpy._typing import ArrayLike
 
 objects = OrderedDict([
@@ -44,22 +45,23 @@ def get_object_dict(obj):
     else:
         return objects[obj]
 
-def create_nparr_onehot(env, view = np.array([9, 9])) -> ArrayLike:
+def create_nparr_onehot(env, pos = None, view = np.array([9, 9])) -> ArrayLike:
     """
-    Creates onehot encoded 3d numpy array of shape 0,H,W for current player position
+    Creates onehot encoded 3d numpy array of shape C,H,W for current player position
     W,H - width, height of the view
-    O - one hot channels for objects and materials from index_list
+    C - one hot channels for objects and materials from mv.utils.objects dictionary
 
     :param view: view size to generate
     :param env: Crafter Environment
-    :return: 3d array OxHxW to match torch.nn.Conv2d input
+    :return: 3d array CxHxW to match torch.nn.Conv2d input
     """
 
     world = env._world
-    player_pos = env._player.pos
+    if pos is None:
+        pos = env._player.pos
 
-    idx = [i - view[0]//2 + player_pos[0] for i in range(view[0])]
-    jdx = [j - view[1]//2 + player_pos[1] for j in range(view[1])]
+    idx = [i - view[0]//2 + pos[0] for i in range(view[0])]
+    jdx = [j - view[1]//2 + pos[1] for j in range(view[1])]
 
     result = [None] * len(idx)
     for i in range(len(idx)):
@@ -73,7 +75,7 @@ def create_nparr_onehot(env, view = np.array([9, 9])) -> ArrayLike:
 
             material = cell[0]
             obj = cell[1].texture if cell[1] else None
-
+            # print(f'In cell ({i},{j}): {material} {obj}')
             material_index = get_object_dict(material)["index"]
             obj_index = get_object_dict(obj)["index"]
 
@@ -84,6 +86,8 @@ def create_nparr_onehot(env, view = np.array([9, 9])) -> ArrayLike:
     result = np.array(result, dtype=np.uint8)
     result = result.transpose(2,1,0)
     return result
+
+
 
 def render_nparr_onehot(arr, env, side_size = 32) -> ArrayLike:
     c, w, h = arr.shape
@@ -114,12 +118,17 @@ def draw_image_grid(images: list):
     return img
 
 
-def sample_nparr_onehot(num: int, env: crafter.Env):
+def sample_nparr_onehot(num: int, env: crafter.Env, view_size=9):
     env.reset()
+    offset = view_size // 2
     def gen():
         for i in range(num):
-            env.step(env.action_space.sample())
-            yield create_nparr_onehot(env)
+            pos = [
+                random.randint(offset, env._size[0] - offset),
+                random.randint(offset, env._size[1] - offset)
+            ]
+            # env.step(env.action_space.sample())
+            yield create_nparr_onehot(env, pos=pos, view=np.array([view_size, view_size]))
     return list(gen())
 
 

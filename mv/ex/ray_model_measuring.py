@@ -55,7 +55,7 @@ def sample_and_show(model):
 
     Image.fromarray(img).show()
 
-run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_ced0e_00000_0_2024-10-25_23-36-27'
+run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_c8284_00000_0_2024-10-28_13-24-15'
 model_state, params = load_tune_run(run_folder)
 print(f"Params for the run {params}")
 model = create_autoencoder(params)

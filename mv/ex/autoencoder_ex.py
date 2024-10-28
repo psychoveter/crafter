@@ -19,8 +19,8 @@ train_loader = DataLoader(train_set, batch_size=16, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=16, shuffle=True)
 
 model = CrafterEnvAutoencoderV0(
-    channels_size=[32, 64, 128, 64, 32],
-    latent_size=8
+    channels_size=[32, 64, 64, 64, 32],
+    latent_size=32
 )
 sample = train_loader.__iter__().__next__()
 res = model(sample)
@@ -29,7 +29,7 @@ print(res.shape)
 # l = crafter_onehot_loss(res, sample)
 
 #%%
-optimizer = torch.optim.ASGD(model.parameters(), lr=0.5)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.02)
 loss_fun = torch.nn.CrossEntropyLoss()
 
 losses = []

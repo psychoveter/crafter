@@ -34,6 +34,38 @@ def crafter_onehot_loss(input, output):
 
     return diff.sum()
 
+
+class FocalLoss(torch.nn.Module):
+    def __init__(self, alpha=0.25, gamma=2, reduction='mean'):
+        """
+        Focal Loss
+
+        :param alpha: Weighting factor for the class, default is 1
+        :param gamma: Focusing parameter for modulating factor (1-p), default is 2
+        :param reduction: Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'
+        """
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+
+    def forward(self, inputs, targets):
+        # Calculate the cross-entropy loss
+        ce_loss = torch.nn.functional.cross_entropy(inputs, targets, reduction='none')
+        # Get the predictions
+        pt = torch.exp(-ce_loss)
+        # Calculate the focal loss
+        focal_loss = self.alpha * (1 - pt) ** self.gamma * ce_loss
+
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        else:
+            return focal_loss
+
+
+
 def execute_sample_torch():
     print(f"Torch version is {torch.__version__}")
     print(f"Cuda is available: {torch.cuda.is_available()}")
@@ -82,9 +114,10 @@ def train_autoencoder(config, is_ray_train = True):
         ray.train.torch.prepare_data_loader(train_loader, move_to_device=False)
 
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    loss_fun = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    # loss_fun = torch.nn.CrossEntropyLoss()
     # loss_fun = crafter_onehot_loss
+    loss_fun = FocalLoss()
 
     losses = []
     for epoch in range(max_epochs):
@@ -110,8 +143,8 @@ def train_autoencoder(config, is_ray_train = True):
 
 def run_torch_train():
     config = {
-            'batch_size': 32,
-            'dataset_size': 1000,
+            'batch_size': 64,
+            'dataset_size': 10000,
             'dropout': 0.3,
             'hidden_channel_0': 64,
             'hidden_channel_1': 64,
@@ -119,8 +152,8 @@ def run_torch_train():
             'hidden_channel_3': 32,
             'hidden_channel_4': 32,
             'latent_size': 64,
-            'learning_rate': 0.01,
-            'max_epochs': 500
+            'learning_rate': 0.001,
+            'max_epochs': 1000
     }
 
     # scaling_config = ScalingConfig(num_workers=1, use_gpu=True)
