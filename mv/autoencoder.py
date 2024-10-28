@@ -11,24 +11,18 @@ from mv.utils import objects,sample_nparr_onehot
 
 
 class CrafterEnvDataset(Dataset):
-    def __init__(self, env, size):
+    def __init__(self, env, size, samples_from_world: int = 1000):
         self.env = env
         self.env.reset()
 
         self.items = []
 
-        samples = sample_nparr_onehot(size, env)
+        samples = sample_nparr_onehot(size, env, samples_from_world=samples_from_world)
         for sample in samples:
             sample = torch.tensor(sample, dtype=torch.float32)
             sample = sample.contiguous()
             self.items.append(sample)
 
-        # for i in range(size):
-        #     self.env.step(self.env.action_space.sample())
-        #     sample = create_nparr_onehot(self.env)
-        #     sample = torch.tensor(sample, dtype=torch.float32)
-        #     sample = sample.contiguous()
-        #     self.items.append(sample)
 
     def __len__(self):
         return len(self.items)

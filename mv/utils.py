@@ -131,17 +131,23 @@ def draw_image_grid(images: list):
     return img
 
 
-def sample_nparr_onehot(num: int, env: crafter.Env, view_size=9):
+def sample_nparr_onehot(num: int, env: crafter.Env, samples_from_world: int = 1000, view_size=9):
     env.reset()
     offset = view_size // 2
     def gen():
+        current_samples = 0
         for i in range(num):
+            current_samples += 1
             pos = [
                 random.randint(offset, env._size[0] - offset),
                 random.randint(offset, env._size[1] - offset)
             ]
             # env.step(env.action_space.sample())
-            yield create_nparr_onehot(env, pos=pos, view=np.array([view_size, view_size]))
+            result = create_nparr_onehot(env, pos=pos, view=np.array([view_size, view_size]))
+            if current_samples >= samples_from_world:
+                current_samples = 0
+                env.reset()
+            yield result
     return list(gen())
 
 

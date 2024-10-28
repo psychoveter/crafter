@@ -10,7 +10,7 @@ from mv.utils import create_nparr_onehot, render_nparr_onehot, create_tensor_one
 env = crafter.Env()
 env.reset()
 
-run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_2a4a4_00000_0_2024-10-28_20-43-39'
+run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_6cb72_00000_0_2024-10-28_20-59-49'
 model = load_model(run_folder)
 
 input = create_tensor_onehot(env)

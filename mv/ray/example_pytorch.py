@@ -138,7 +138,7 @@ def train_autoencoder(config, is_ray_train = True):
 
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-
+    # lr_scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer, max_epochs)
 
     losses = []
     for epoch in range(max_epochs):
@@ -150,6 +150,7 @@ def train_autoencoder(config, is_ray_train = True):
             loss = loss_fun(output, batch)
             loss.backward()
             optimizer.step()
+            # lr_scheduler.step()
         print(f"Epoch: {epoch}, Loss: {loss.item()}")
         losses.append(loss.item())
 
@@ -165,7 +166,7 @@ def train_autoencoder(config, is_ray_train = True):
 def run_torch_train():
     config = {
             'batch_size': 512,
-            'dataset_size': 15000,
+            'dataset_size': 20000,
             'dropout': 0.3,
             'hidden_channel_0': 64,
             'hidden_channel_1': 64,
