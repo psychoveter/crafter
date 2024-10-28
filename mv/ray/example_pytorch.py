@@ -69,12 +69,19 @@ def partite_sigmoid_focal_loss(inputs, targets):
     """
     Uses sigmoid focal loss separately on material classes and object classes
     These groups are mutually exclusive.
+
     :param inputs: BCWH tensor
     :param targets: BCWH tensor
     :return:
     """
-    material_loss = torchvision.ops.sigmoid_focal_loss(inputs[:, :13, :, :], targets[:, :13, :, :]).sum()
-    object_loss = torchvision.ops.sigmoid_focal_loss(inputs[:, 13:, :, :], targets[:, 13:, :, :]).sum()
+    material_loss = torchvision.ops.sigmoid_focal_loss(
+        inputs[:, :13, :, :], targets[:, :13, :, :],
+        reduction="mean"
+    ).sum()
+    object_loss = torchvision.ops.sigmoid_focal_loss(
+        inputs[:, 13:, :, :], targets[:, 13:, :, :],
+        reduction="mean"
+    ).sum()
     return material_loss + object_loss
 
 def execute_sample_torch():
@@ -158,7 +165,7 @@ def train_autoencoder(config, is_ray_train = True):
 def run_torch_train():
     config = {
             'batch_size': 512,
-            'dataset_size': 10000,
+            'dataset_size': 15000,
             'dropout': 0.3,
             'hidden_channel_0': 64,
             'hidden_channel_1': 64,
