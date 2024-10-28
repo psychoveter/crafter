@@ -1,11 +1,13 @@
+import json
+import os
 from typing import Union, Callable, Tuple, Any, Optional, Dict
 
-import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset
 import crafter
-from mv.utils import create_nparr_onehot, objects, object_weights, sample_nparr_onehot
-import torch.nn.functional as F
+from mv.utils import objects,sample_nparr_onehot
+
 
 
 class CrafterEnvDataset(Dataset):
@@ -156,9 +158,11 @@ class CrafterEnvDecoderV0(torch.nn.Module):
                  channels_size: list[int],
                  latent_size: int,
                  use_skip: bool = True,
+                 output_logit: bool = False
                  ):
         super(CrafterEnvDecoderV0, self).__init__()
         self.use_skip = use_skip
+        self.output_logit = output_logit
 
         self.linear_conv = torch.nn.Linear(latent_size, channels_size[4] * 3 * 3)
         self.unflatten_conv = torch.nn.Unflatten(dim=1, unflattened_size=(channels_size[4], 3, 3))
@@ -173,7 +177,8 @@ class CrafterEnvDecoderV0(torch.nn.Module):
             self.unflatten_skip = torch.nn.Unflatten(dim=1, unflattened_size=(len(objects), 9, 9))
 
         self.layer_out = DecoderLayer(len(objects), len(objects), padding=1, activation=False) #28 9 9 -> 28 9 9
-        self.sigmoid = torch.nn.Sigmoid()
+        if not self.output_logit:
+            self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, x):
         source = x
@@ -195,7 +200,10 @@ class CrafterEnvDecoderV0(torch.nn.Module):
 
         # out layer
         x = self.layer_out(x)
-        x = self.sigmoid(x)
+
+        if not self.output_logit:
+            x = self.sigmoid(x)
+
         return x
 
 class CrafterEnvAutoencoderV0(torch.nn.Module):
@@ -203,7 +211,8 @@ class CrafterEnvAutoencoderV0(torch.nn.Module):
                  channels_size: list[int],
                  latent_size: int,
                  dropout: float = 0.2,
-                 use_batch_norm: bool = True):
+                 use_batch_norm: bool = True,
+                 output_logit: bool = False):
         super(CrafterEnvAutoencoderV0, self).__init__()
         self.encoder = CrafterEnvEncoderV0(channels_size, latent_size, dropout, use_batch_norm)
         self.decoder = CrafterEnvDecoderV0(channels_size, latent_size)
@@ -217,7 +226,7 @@ class CrafterEnvAutoencoderV0(torch.nn.Module):
         return x
 
 
-def create_autoencoder(config) -> CrafterEnvAutoencoderV0:
+def create_autoencoder(config, output_logits: bool = False) -> CrafterEnvAutoencoderV0:
     hidden_channel_0 = int(config['hidden_channel_0'])
     hidden_channel_1 = int(config['hidden_channel_1'])
     hidden_channel_2 = int(config['hidden_channel_2'])
@@ -230,4 +239,40 @@ def create_autoencoder(config) -> CrafterEnvAutoencoderV0:
     return CrafterEnvAutoencoderV0(
         channels_size=[hidden_channel_0, hidden_channel_1, hidden_channel_2, hidden_channel_3, hidden_channel_4],
         latent_size=latent_size,
-        dropout=dropout)
+        dropout=dropout,
+        output_logit=output_logits
+    )
+
+
+def load_tune_run(run_folder, checkpoint: str = None):
+    """
+
+    :param run_folder: absolute path to the folder with a single train inside ray tune
+    :param checkpoint: is not None load specific checkpoint, otherwise load the  best checkpoint
+    :return:
+    """
+
+    progress = pd.read_csv(os.path.join(run_folder, "progress.csv"))
+    # load best loss checkpoint
+    if checkpoint is not None:
+        checkpoint_dir_name = os.path.join(run_folder, checkpoint, 'model.pt')
+    else:
+        sorted = progress.sort_values(by='loss', ascending=True)
+        checkpoint_dir_name: str = sorted.values[0][2]
+        checkpoint_dir_name: str = os.path.join(run_folder, checkpoint_dir_name, 'model.pt')
+
+    print(checkpoint_dir_name)
+    model_state = torch.load(checkpoint_dir_name)
+    params_file = os.path.join(run_folder, 'params.json')
+    with open(params_file) as f:
+        params = json.load(f)
+        if 'train_loop_config' in params:
+            params = params['train_loop_config']
+        print(params)
+    return model_state, params
+
+def load_model(run_folder, checkpoint=None):
+    model_state, params = load_tune_run(run_folder, checkpoint)
+    model = create_autoencoder(params)
+    model.load_state_dict(model_state)
+    return model

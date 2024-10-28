@@ -1,10 +1,11 @@
-#%%
 import numpy as np
 from collections import OrderedDict
+from matplotlib import pyplot as plt
 import crafter
 import torch
 import random
 from numpy._typing import ArrayLike
+
 
 objects = OrderedDict([
     ("None",             { "index": 0,  "weight": 1 }),
@@ -44,6 +45,11 @@ def get_object_dict(obj):
         return objects["None"]
     else:
         return objects[obj]
+
+def create_tensor_onehot(env, pos = None, view = np.array([9, 9])) -> torch.Tensor:
+    np_sample = create_nparr_onehot(env, pos, view)
+    torch_sample = torch.tensor(np_sample, dtype=torch.float32).unsqueeze(dim=0)
+    return torch_sample
 
 def create_nparr_onehot(env, pos = None, view = np.array([9, 9])) -> ArrayLike:
     """
@@ -89,6 +95,13 @@ def create_nparr_onehot(env, pos = None, view = np.array([9, 9])) -> ArrayLike:
 
 
 
+def render_tensor_onehot(t, env, side_size = 32) -> ArrayLike:
+    return render_nparr_onehot(
+        t.detach().numpy().round(),
+        env,
+        side_size
+    )
+
 def render_nparr_onehot(arr, env, side_size = 32) -> ArrayLike:
     c, w, h = arr.shape
     textures = env._textures
@@ -113,7 +126,7 @@ def render_nparr_onehot(arr, env, side_size = 32) -> ArrayLike:
 def draw_image_grid(images: list):
     img = images[0]
     for i in range(1, len(images)):
-        line = np.ones((img.shape[0], 1, img.shape[2]), np.uint8)
+        line = np.ones((img.shape[0], 1, img.shape[2]), np.uint8) * 127
         img = np.concatenate((img, line, images[i]), axis=1)
     return img
 
@@ -168,3 +181,31 @@ def get_actual_device():
         return torch.device('mps')
 
     return torch.device('cpu')
+
+
+
+def plot_image_grid(images, grid_size, image_shape, figsize=(10, 10), titles=None):
+    """
+    Plot a grid of images.
+
+    :param images: List or array of images in numpy array format
+    :param grid_size: Tuple (rows, columns) indicating size of the grid
+    :param image_shape: Tuple (height, width) indicating the shape of each image
+    :param figsize: Tuple (width, height) indicating the size of the figure
+    :param titles: List of titles for each subplot; if None, no titles will be displayed
+    """
+    rows, cols = grid_size
+    fig, axes = plt.subplots(rows, cols, figsize=figsize)
+
+    for i, ax in enumerate(axes.flat):
+        if i < len(images):
+            image = images[i] #.reshape(image_shape)
+            ax.imshow(image, cmap='gray')
+            if titles:
+                ax.set_title(titles[i])
+        else:
+            ax.axis('off')
+        ax.axis('off')
+
+    plt.tight_layout()
+    plt.show()

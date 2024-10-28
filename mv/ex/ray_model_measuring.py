@@ -8,8 +8,8 @@ import torch
 import matplotlib
 import PIL.Image as Image
 import crafter
-from mv.autoencoder import create_autoencoder, CrafterEnvAutoencoderV0
-from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid
+from mv.autoencoder import create_autoencoder, CrafterEnvAutoencoderV0, load_tune_run
+from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid, create_tensor_onehot
 
 results_path     = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results'
 tune_folder_path = 'tune_autoencoder_2024-10-25_16-31-11'
@@ -18,50 +18,39 @@ run_folder_name  = 'tune_autoencoder_6678e_02796_2796_batch_size=16,dataset_size
 tune_folder = os.path.join(results_path, tune_folder_path)
 run_folder = os.path.join(tune_folder, run_folder_name)
 
-def load_tune_run(run_folder):
 
-    progress = pd.read_csv(os.path.join(run_folder, "progress.csv"))
-    # load best loss checkpoint
-    sorted = progress.sort_values(by='loss', ascending=True)
-    checkpoint_dir_name: str = sorted.values[0][2]
-    checkpoint_dir_name: str = os.path.join(run_folder, checkpoint_dir_name, 'model.pt')
-    print(checkpoint_dir_name)
-    model_state = torch.load(checkpoint_dir_name)
-    params_file = os.path.join(run_folder, 'params.json')
-    with open(params_file) as f:
-        params = json.load(f)
-        if 'train_loop_config' in params:
-            params = params['train_loop_config']
-        print(params)
-    return model_state, params
+def sample_and_show(model, env):
+    """
+    Creates env and samples an image from the env, then project it via the model
+    :param model:
+    :return:
+    """
 
-
-def sample_and_show(model):
-    env = crafter.Env()
-    env.reset()
     env.step(env.action_space.sample())
-    np_sample = create_nparr_onehot(env)
-    print(np_sample.shape)
+    torch_sample = create_tensor_onehot(env)
 
-    torch_sample = torch.tensor(np_sample, dtype=torch.float32).unsqueeze(dim=0)
-
-    print(torch_sample.shape)
+    # print(torch_sample.shape)
     restored = model(torch_sample).detach().numpy().round()
-    print(f"restored: {restored.shape}")
+    # print(f"restored: {restored.shape}")
 
-    img_source = render_nparr_onehot(np_sample, env)
+
+    img_source = render_nparr_onehot(torch_sample[0].detach().numpy(), env)
     img_restored = render_nparr_onehot(restored[0], env)
     img = draw_image_grid([img_source, img_restored])
 
     Image.fromarray(img).show()
 
 run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_c8284_00000_0_2024-10-28_13-24-15'
-model_state, params = load_tune_run(run_folder)
+# checkpoint = 'checkpoint_0000120'
+checkpoint=None
+model_state, params = load_tune_run(run_folder, checkpoint=checkpoint)
 print(f"Params for the run {params}")
 model = create_autoencoder(params)
 model.load_state_dict(model_state)
 
-sample_and_show(model)
+env = crafter.Env()
+env.reset()
+sample_and_show(model, env)
 
 # def accuracy(model: CrafterEnvAutoencoderV0, num_samples: int):
 #     env = crafter.Env()

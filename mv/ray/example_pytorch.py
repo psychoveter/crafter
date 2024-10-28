@@ -9,6 +9,7 @@ from ray.train import ScalingConfig, RunConfig
 from ray.train.torch import TorchConfig, TorchTrainer
 
 import torch
+import torchvision
 from torch.utils.data import DataLoader
 from mv.autoencoder import CrafterEnvAutoencoderV0, CrafterEnvDataset, create_datasets, create_autoencoder
 from mv.utils import get_actual_device, object_weights
@@ -35,7 +36,7 @@ def crafter_onehot_loss(input, output):
     return diff.sum()
 
 
-class FocalLoss(torch.nn.Module):
+class FocalLossCE(torch.nn.Module):
     def __init__(self, alpha=0.25, gamma=2, reduction='mean'):
         """
         Focal Loss
@@ -44,7 +45,7 @@ class FocalLoss(torch.nn.Module):
         :param gamma: Focusing parameter for modulating factor (1-p), default is 2
         :param reduction: Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'
         """
-        super(FocalLoss, self).__init__()
+        super(FocalLossCE, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
         self.reduction = reduction
@@ -64,7 +65,17 @@ class FocalLoss(torch.nn.Module):
         else:
             return focal_loss
 
-
+def partite_sigmoid_focal_loss(inputs, targets):
+    """
+    Uses sigmoid focal loss separately on material classes and object classes
+    These groups are mutually exclusive.
+    :param inputs: BCWH tensor
+    :param targets: BCWH tensor
+    :return:
+    """
+    material_loss = torchvision.ops.sigmoid_focal_loss(inputs[:, :13, :, :], targets[:, :13, :, :]).sum()
+    object_loss = torchvision.ops.sigmoid_focal_loss(inputs[:, 13:, :, :], targets[:, 13:, :, :]).sum()
+    return material_loss + object_loss
 
 def execute_sample_torch():
     print(f"Torch version is {torch.__version__}")
@@ -100,8 +111,13 @@ def train_autoencoder(config, is_ray_train = True):
     device = get_actual_device()
     # device = torch.device("cpu")
     print(f"Device is {device}")
-    model = create_autoencoder(config)
+    model = create_autoencoder(config, output_logits=True)
     model.to(device)
+
+    # loss_fun = torch.nn.CrossEntropyLoss()
+    # loss_fun = crafter_onehot_loss
+    # loss_fun = FocalLossCE()
+    loss_fun = partite_sigmoid_focal_loss
 
     # add hooks
     def backward_hook(module: torch.nn.Module, grad_input, grad_output):
@@ -115,9 +131,7 @@ def train_autoencoder(config, is_ray_train = True):
 
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-    # loss_fun = torch.nn.CrossEntropyLoss()
-    # loss_fun = crafter_onehot_loss
-    loss_fun = FocalLoss()
+
 
     losses = []
     for epoch in range(max_epochs):
@@ -143,7 +157,7 @@ def train_autoencoder(config, is_ray_train = True):
 
 def run_torch_train():
     config = {
-            'batch_size': 64,
+            'batch_size': 512,
             'dataset_size': 10000,
             'dropout': 0.3,
             'hidden_channel_0': 64,
