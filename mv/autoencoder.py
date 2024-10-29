@@ -179,6 +179,8 @@ class CrafterEnvDecoderV0(torch.nn.Module):
             self.unflatten_skip = torch.nn.Unflatten(dim=1, unflattened_size=(len(objects), 9, 9))
 
         self.layer_out = DecoderLayer(len(objects), len(objects), padding=1, activation=False) #obj 9 9 -> obj 9 9
+        self.bn_out = torch.nn.BatchNorm2d(len(objects))
+
         if not self.output_logit:
             self.sigmoid = torch.nn.Sigmoid()
 
@@ -202,6 +204,7 @@ class CrafterEnvDecoderV0(torch.nn.Module):
 
         # out layer
         x = self.layer_out(x)
+        x = self.bn_out(x)
 
         if not self.output_logit:
             x = self.sigmoid(x)

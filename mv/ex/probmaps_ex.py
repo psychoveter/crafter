@@ -1,15 +1,17 @@
-
+#%%
 import numpy as np
-import PIL.Image as Image
 
 import crafter
 from mv.autoencoder import load_model
-from mv.utils import create_tensor_onehot, render_tensor_onehot, draw_image_grid
+from mv.utils import create_tensor_onehot, object_keys
+from mv.draw_utils import render_tensor_onehot, draw_image_grid, plot_image_grid, channel_to_img, render_channels
+import torch.nn.functional as F
+import PIL.Image as Image
 
 env = crafter.Env()
 env.reset()
 
-run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_dcc41_00000_0_2024-10-29_12-40-41'
+run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_c7c66_00000_0_2024-10-29_18-09-23'
 # run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_ee126_00000_0_2024-10-29_10-46-38'
 
 print(f"run_folder: {run_folder}")
@@ -25,29 +27,34 @@ source_img = render_tensor_onehot(input[0], env)
 target_img = render_tensor_onehot(sample[0], env)
 # B 3 W H
 
-def channel_to_img(tensor, channel, side_size=32):
-    b, c, w, h = tensor.shape
-    arr = tensor[0, channel].detach().numpy()
-    arr *= 127
-    arr = arr.astype(np.uint8)
-
-    img = np.zeros((side_size * w, side_size * h,3), np.uint8)
-    for i in range(w):
-        for j in range(h):
-            img[i*side_size:(i+1)*side_size, j*side_size:(j+1)*side_size, 0] = arr[i,j]
-
-
-    return img.transpose(1,0,2)
-
+#%%
 
 images = [
-    source_img,
-    target_img,
-    channel_to_img(sample, 1),
-    channel_to_img(sample, 2),
-    channel_to_img(sample, 6),
-    channel_to_img(sample, 19)
+    ("source", source_img),
+    ("target", target_img),
+    (object_keys[1], channel_to_img(sample, 1)),
+    (object_keys[2], channel_to_img(sample, 2)),
+    (object_keys[6], channel_to_img(sample, 6)),
+    (object_keys[13], channel_to_img(sample, 13)),
+    (object_keys[14], channel_to_img(sample, 14)),
+    (object_keys[15], channel_to_img(sample, 15)),
+    (object_keys[16], channel_to_img(sample, 16)),
+    (object_keys[17], channel_to_img(sample, 17)),
+    (object_keys[18], channel_to_img(sample, 18)),
+    (object_keys[19], channel_to_img(sample, 19)),
+    (object_keys[20], channel_to_img(sample, 20)),
+    (object_keys[21], channel_to_img(sample, 21)),
 ]
 
-image_line = draw_image_grid(images)
-Image.fromarray(image_line).show()
+# image_line = draw_image_grid(images)
+# Image.fromarray(image_line).show()
+
+plot_image_grid(
+    images = [i[1] for i in images],
+    titles = [i[0] for i in images],
+    grid_size = (3, len(images) // 3 + 1),
+    figsize = (12,12)
+)
+
+Image.fromarray(render_channels(sample[0], 5, 5)).show()
+print(sample[0,:,5,5])

@@ -16,22 +16,23 @@ from mv.autoencoder import CrafterEnvAutoencoderV0, CrafterEnvDataset, create_da
 from mv.ray.example_pytorch import tune_autoencoder
 
 search_space = {
-    'learning_rate': tune.uniform(0.0001, 0.1),
-    'batch_size': tune.grid_search([16, 32]),
+    'learning_rate': tune.uniform(0.0001, 0.01),
+    'batch_size': tune.grid_search([256, 512, 124]),
     'hidden_channel_0': tune.grid_search([32, 64]),
     'hidden_channel_1': tune.grid_search([32, 64, 128]),
-    'hidden_channel_2': tune.grid_search([32, 64]),
+    'hidden_channel_2': tune.grid_search([32, 64, 96]),
     'hidden_channel_3': tune.grid_search([32, 64]),
     'hidden_channel_4': tune.grid_search([16, 32]),
-    'latent_size': tune.uniform(4, 64),
-    'dropout': tune.uniform(0.2, 0.5),
-    'dataset_size': tune.grid_search([500, 1000]),
-    'max_epochs': tune.grid_search([200, 300])
+    'latent_size': tune.uniform(16, 128),
+    'encoder_dropout': tune.uniform(0.1, 0.5),
+    'decoder_dropout': tune.uniform(0.05, 0.15),
+    'dataset_size': tune.grid_search([15000]),
+    'max_epochs': tune.grid_search([1000])
 }
 
 def setup_tuner(search_space: dict[str, Any]) -> Tuple[TrialScheduler, Tuner]:
     scheduler = tune.schedulers.ASHAScheduler(
-        max_t=100,
+        max_t=1000,
         metric="loss",
         mode="min",
         grace_period=2,
@@ -40,7 +41,7 @@ def setup_tuner(search_space: dict[str, Any]) -> Tuple[TrialScheduler, Tuner]:
     tuner = tune.Tuner(
         trainable=tune.with_resources(
             tune.with_parameters(tune_autoencoder),
-            resources={"cpu": 1}
+            resources={"cpu": 1, "gpu": 0.5}
         ),
         param_space=search_space,
         run_config=RunConfig(storage_path="~/projects/montevideo/crafter/mv/ray_results"),
@@ -70,7 +71,9 @@ def load_tuner():
     print(best_result)
     print(best_result.config)
 
-if __name__ == "__main__":
-    ray.init()
-    run_tune_train()
+# if __name__ == "__main__":
+#     ray.init()
+#     run_tune_train()
     # load_tuner()
+
+run_tune_train()

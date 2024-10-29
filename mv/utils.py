@@ -41,6 +41,7 @@ objects = OrderedDict([
     ('plant',            { "index": 27, "weight": 1 }),
     ("fence",            { "index": 28, "weight": 1 }),
 ])
+
 object_keys = list(objects.keys()) # for indexed access
 object_weights = [objects[x]['weight'] for x in objects]
 
@@ -104,47 +105,6 @@ def create_nparr_onehot(env, pos = None, view = np.array([9, 9])) -> ArrayLike:
 
 
 
-def render_tensor_onehot(t, env, side_size = 32) -> ArrayLike:
-    return render_nparr_onehot(
-        t.detach().numpy().round(),
-        env,
-        side_size
-    )
-
-def render_nparr_onehot(arr, env, side_size = 32, objects_keys=None) -> ArrayLike:
-    c, w, h = arr.shape
-    textures = env._textures
-
-    canvas = np.zeros((w*side_size, h*side_size, 3), np.uint8)
-
-    arr_materials = arr[:index_first_object, :, :].argmax(axis=0)
-    arr_objects = arr[index_first_object:, : , :].argmax(axis=0) + index_first_object
-
-    for x in range(w):
-      for y in range(h):
-          texture_names = [ object_keys[arr_materials[x,y]], object_keys[arr_objects[x,y]] ]
-          # print(f"({x},{y}): {texture_names}")
-          for t in texture_names:
-            if t.startswith("none-"):
-                continue
-            img = textures.get(name=t, size=[side_size, side_size])
-            # print(img.shape)
-            if img.shape[-1] == 4:
-                img = img[..., :3]
-            wx = x*side_size
-            wy = y*side_size
-            canvas[wx: wx + side_size, wy: wy + side_size] = img
-
-    return canvas.transpose(1, 0, 2)
-
-
-def draw_image_grid(images: list):
-    img = images[0]
-    for i in range(1, len(images)):
-        line = np.ones((img.shape[0], 1, img.shape[2]), np.uint8) * 127
-        img = np.concatenate((img, line, images[i]), axis=1)
-    return img
-
 
 def sample_nparr_onehot(num: int, env: crafter.Env, samples_from_world: int = 1000, view_size=9):
     env.reset()
@@ -204,29 +164,3 @@ def get_actual_device():
     return torch.device('cpu')
 
 
-
-def plot_image_grid(images, grid_size, image_shape, figsize=(10, 10), titles=None):
-    """
-    Plot a grid of images.
-
-    :param images: List or array of images in numpy array format
-    :param grid_size: Tuple (rows, columns) indicating size of the grid
-    :param image_shape: Tuple (height, width) indicating the shape of each image
-    :param figsize: Tuple (width, height) indicating the size of the figure
-    :param titles: List of titles for each subplot; if None, no titles will be displayed
-    """
-    rows, cols = grid_size
-    fig, axes = plt.subplots(rows, cols, figsize=figsize)
-
-    for i, ax in enumerate(axes.flat):
-        if i < len(images):
-            image = images[i] #.reshape(image_shape)
-            ax.imshow(image, cmap='gray')
-            if titles:
-                ax.set_title(titles[i])
-        else:
-            ax.axis('off')
-        ax.axis('off')
-
-    plt.tight_layout()
-    plt.show()

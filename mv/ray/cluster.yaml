@@ -34,7 +34,7 @@ available_node_types:
     # For more documentation on available fields, see
     # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
     node_config:
-      InstanceType: p3.2xlarge
+      InstanceType: g5.2xlarge
       ImageId: ami-0ed442efa816f9a1a # default ray aws image uses outdated cuda version
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
