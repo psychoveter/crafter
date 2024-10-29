@@ -6,9 +6,10 @@ import torch
 import random
 from numpy._typing import ArrayLike
 
-
+index_first_object = 13
 objects = OrderedDict([
-    ("None",             { "index": 0,  "weight": 1 }),
+    # materials
+    ("none-material",    { "index": 0,  "weight": 1 }),
     ("water",            { "index": 1,  "weight": 1 }),
     ("grass",            { "index": 2,  "weight": 1 }),
     ("stone",            { "index": 3,  "weight": 1 }),
@@ -21,30 +22,29 @@ objects = OrderedDict([
     ("diamond",          { "index": 10, "weight": 1 }),
     ("table",            { "index": 11, "weight": 1 }),
     ("furnace",          { "index": 12, "weight": 1 }),
-    ('player-sleep',     { "index": 13, "weight": 1 }),
-    ('player-left',      { "index": 14, "weight": 1 }),
-    ('player-right',     { "index": 15, "weight": 1 }),
-    ('player-up',        { "index": 16, "weight": 1 }),
-    ('player-down',      { "index": 17, "weight": 1 }),
-    ("cow",              { "index": 18, "weight": 1 }),
-    ("zombie",           { "index": 19, "weight": 1 }),
-    ("skeleton",         { "index": 20, "weight": 1 }),
-    ('arrow-left',       { "index": 21, "weight": 1 }),
-    ('arrow-right',      { "index": 22, "weight": 1 }),
-    ('arrow-up',         { "index": 23, "weight": 1 }),
-    ('arrow-down',       { "index": 24, "weight": 1 }),
-    ('plant-ripe',       { "index": 25, "weight": 1 }),
-    ('plant',            { "index": 26, "weight": 1 }),
-    ("fence",            { "index": 27, "weight": 1 })
-])
 
+    # objects
+    ("none-object",      { "index": 13, "weight": 1 }),
+    ('player-sleep',     { "index": 14, "weight": 1 }),
+    ('player-left',      { "index": 15, "weight": 1 }),
+    ('player-right',     { "index": 16, "weight": 1 }),
+    ('player-up',        { "index": 17, "weight": 1 }),
+    ('player-down',      { "index": 18, "weight": 1 }),
+    ("cow",              { "index": 19, "weight": 1 }),
+    ("zombie",           { "index": 20, "weight": 1 }),
+    ("skeleton",         { "index": 21, "weight": 1 }),
+    ('arrow-left',       { "index": 22, "weight": 1 }),
+    ('arrow-right',      { "index": 23, "weight": 1 }),
+    ('arrow-up',         { "index": 24, "weight": 1 }),
+    ('arrow-down',       { "index": 25, "weight": 1 }),
+    ('plant-ripe',       { "index": 26, "weight": 1 }),
+    ('plant',            { "index": 27, "weight": 1 }),
+    ("fence",            { "index": 28, "weight": 1 }),
+])
+object_keys = list(objects.keys()) # for indexed access
 object_weights = [objects[x]['weight'] for x in objects]
 
-def get_object_dict(obj):
-    if obj is None:
-        return objects["None"]
-    else:
-        return objects[obj]
+
 
 def create_tensor_onehot(env, pos = None, view = np.array([9, 9])) -> torch.Tensor:
     np_sample = create_nparr_onehot(env, pos, view)
@@ -79,15 +79,24 @@ def create_nparr_onehot(env, pos = None, view = np.array([9, 9])) -> ArrayLike:
             if not cell:
                 continue
 
-            material = cell[0]
-            obj = cell[1].texture if cell[1] else None
+
+            if not cell[0] or cell[0] == 'None':
+                material = 'none-material'
+            else:
+                material = cell[0]
+
+            if not cell[1] or cell[1] == 'None':
+                obj = 'none-object'
+            else:
+                obj = cell[1].texture
+
             # print(f'In cell ({i},{j}): {material} {obj}')
-            material_index = get_object_dict(material)["index"]
-            obj_index = get_object_dict(obj)["index"]
+            material_index = objects[material]["index"]
+            obj_index = objects[obj]["index"]
 
             result[i][j][material_index] = 1
-            if obj_index:
-                result[i][j][obj_index] = 1
+            result[i][j][obj_index] = 1
+
 
     result = np.array(result, dtype=np.uint8)
     result = result.transpose(2,1,0)
@@ -102,16 +111,22 @@ def render_tensor_onehot(t, env, side_size = 32) -> ArrayLike:
         side_size
     )
 
-def render_nparr_onehot(arr, env, side_size = 32) -> ArrayLike:
+def render_nparr_onehot(arr, env, side_size = 32, objects_keys=None) -> ArrayLike:
     c, w, h = arr.shape
     textures = env._textures
-    items = list(objects.items())
+
     canvas = np.zeros((w*side_size, h*side_size, 3), np.uint8)
+
+    arr_materials = arr[:index_first_object, :, :].argmax(axis=0)
+    arr_objects = arr[index_first_object:, : , :].argmax(axis=0) + index_first_object
+
     for x in range(w):
       for y in range(h):
-          texture_names = [ items[i][0] for i in range(c) if arr[i,x,y] > 0 ]
+          texture_names = [ object_keys[arr_materials[x,y]], object_keys[arr_objects[x,y]] ]
           # print(f"({x},{y}): {texture_names}")
           for t in texture_names:
+            if t.startswith("none-"):
+                continue
             img = textures.get(name=t, size=[side_size, side_size])
             # print(img.shape)
             if img.shape[-1] == 4:

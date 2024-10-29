@@ -1,17 +1,20 @@
-#%%
+
 import numpy as np
 import PIL.Image as Image
 
 import crafter
 from mv.autoencoder import load_model
-from mv.utils import create_nparr_onehot, render_nparr_onehot, create_tensor_onehot, render_tensor_onehot, \
-    draw_image_grid, plot_image_grid
+from mv.utils import create_tensor_onehot, render_tensor_onehot, draw_image_grid
 
 env = crafter.Env()
 env.reset()
 
-run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_6cb72_00000_0_2024-10-28_20-59-49'
+run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_dcc41_00000_0_2024-10-29_12-40-41'
+# run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_ee126_00000_0_2024-10-29_10-46-38'
+
+print(f"run_folder: {run_folder}")
 model = load_model(run_folder)
+model.eval()
 
 input = create_tensor_onehot(env)
 sample = model(input)
@@ -36,13 +39,14 @@ def channel_to_img(tensor, channel, side_size=32):
 
     return img.transpose(1,0,2)
 
+
 images = [
     source_img,
     target_img,
     channel_to_img(sample, 1),
     channel_to_img(sample, 2),
     channel_to_img(sample, 6),
-    channel_to_img(sample, 18)
+    channel_to_img(sample, 19)
 ]
 
 image_line = draw_image_grid(images)

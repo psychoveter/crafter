@@ -12,7 +12,7 @@ import torch
 import torchvision
 from torch.utils.data import DataLoader
 from mv.autoencoder import CrafterEnvAutoencoderV0, CrafterEnvDataset, create_datasets, create_autoencoder
-from mv.utils import get_actual_device, object_weights
+from mv.utils import get_actual_device, object_weights, index_first_object
 
 torch_object_weights = torch.tensor(object_weights, dtype=torch.float32) #+ (torch.rand(len(object_weights)))
 
@@ -75,11 +75,11 @@ def partite_sigmoid_focal_loss(inputs, targets):
     :return:
     """
     material_loss = torchvision.ops.sigmoid_focal_loss(
-        inputs[:, :13, :, :], targets[:, :13, :, :],
+        inputs[:, :index_first_object, :, :], targets[:, :index_first_object, :, :],
         reduction="mean"
     ).sum()
     object_loss = torchvision.ops.sigmoid_focal_loss(
-        inputs[:, 13:, :, :], targets[:, 13:, :, :],
+        inputs[:, index_first_object:, :, :], targets[:, index_first_object:, :, :],
         reduction="mean"
     ).sum()
     return material_loss + object_loss
@@ -138,7 +138,7 @@ def train_autoencoder(config, is_ray_train = True):
 
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-    # lr_scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer, max_epochs)
+    lr_scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer, max_epochs)
 
     losses = []
     for epoch in range(max_epochs):
@@ -150,7 +150,8 @@ def train_autoencoder(config, is_ray_train = True):
             loss = loss_fun(output, batch)
             loss.backward()
             optimizer.step()
-            # lr_scheduler.step()
+            if epoch % 100 == 0:
+                lr_scheduler.step()
         print(f"Epoch: {epoch}, Loss: {loss.item()}")
         losses.append(loss.item())
 
@@ -166,12 +167,13 @@ def train_autoencoder(config, is_ray_train = True):
 def run_torch_train():
     config = {
             'batch_size': 512,
-            'dataset_size': 20000,
-            'dropout': 0.3,
+            'dataset_size': 15000,
+            'encoder_dropout': 0.3,
+            'decoder_dropout': 0.1,
             'hidden_channel_0': 64,
-            'hidden_channel_1': 64,
-            'hidden_channel_2': 64,
-            'hidden_channel_3': 32,
+            'hidden_channel_1': 96,
+            'hidden_channel_2': 96,
+            'hidden_channel_3': 64,
             'hidden_channel_4': 32,
             'latent_size': 64,
             'learning_rate': 0.001,
