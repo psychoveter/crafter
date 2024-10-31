@@ -1,4 +1,3 @@
-#%%
 import argparse
 
 import crafter
@@ -12,7 +11,6 @@ import stable_baselines3
 outdir = 'logdir/crafter_reward-ppo/0'
 steps = int(1e6)
 
-
 env = crafter.Env()
 # env = crafter.Recorder(
 #     env, args.outdir,
@@ -24,5 +22,4 @@ env = crafter.Env()
 model = stable_baselines3.PPO('CnnPolicy', env, verbose=1)
 model.learn(total_timesteps=steps)
 
-#%%
-model.save(path="results")
+model.save(path="./ppo")
