@@ -5,12 +5,15 @@ import pathlib
 import imageio
 import numpy as np
 
+import crafter
 
-class Recorder:
+
+class Recorder(crafter.Env):
 
   def __init__(
       self, env, directory, save_stats=True, save_video=True,
       save_episode=True, video_size=(512, 512)):
+    super().__init__()
     if directory and save_stats:
       env = StatsRecorder(env, directory)
     if directory and save_video:
@@ -20,12 +23,18 @@ class Recorder:
     self._env = env
 
   def __getattr__(self, name):
+    # if name.startswith('reset') \
+    #   or name.startswith('step') \
+    #   or name.startswith('_save') \
+    #   or name.startswith('episode_name'):
+    #   return super.__getattr__(self, name)
+
     if name.startswith('__'):
       raise AttributeError(name)
     return getattr(self._env, name)
 
 
-class StatsRecorder:
+class StatsRecorder(Recorder):
 
   def __init__(self, env, directory):
     self._env = env
@@ -66,7 +75,7 @@ class StatsRecorder:
     self._file.flush()
 
 
-class VideoRecorder:
+class VideoRecorder(Recorder):
 
   def __init__(self, env, directory, size=(512, 512)):
     if not hasattr(env, 'episode_name'):
@@ -99,7 +108,7 @@ class VideoRecorder:
     imageio.mimsave(filename, self._frames)
 
 
-class EpisodeRecorder:
+class EpisodeRecorder(Recorder):
 
   def __init__(self, env, directory):
     if not hasattr(env, 'episode_name'):
@@ -152,7 +161,7 @@ class EpisodeRecorder:
     np.savez_compressed(filename, **episode)
 
 
-class EpisodeName:
+class EpisodeName(Recorder):
 
   def __init__(self, env):
     self._env = env

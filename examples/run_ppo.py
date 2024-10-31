@@ -1,20 +1,28 @@
+#%%
 import argparse
 
 import crafter
 import stable_baselines3
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--outdir', default='logdir/crafter_reward-ppo/0')
-parser.add_argument('--steps', type=float, default=1e6)
-args = parser.parse_args()
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--outdir', default='logdir/crafter_reward-ppo/0')
+# parser.add_argument('--steps', type=float, default=1e6)
+# args = parser.parse_args()
+
+outdir = 'logdir/crafter_reward-ppo/0'
+steps = int(1e6)
+
 
 env = crafter.Env()
-env = crafter.Recorder(
-    env, args.outdir,
-    save_stats=True,
-    save_episode=False,
-    save_video=False,
-)
+# env = crafter.Recorder(
+#     env, args.outdir,
+#     save_stats=True,
+#     save_episode=False,
+#     save_video=False,
+# )
 
 model = stable_baselines3.PPO('CnnPolicy', env, verbose=1)
-model.learn(total_timesteps=args.steps)
+model.learn(total_timesteps=steps)
+
+#%%
+model.save(path="results")

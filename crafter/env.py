@@ -10,12 +10,13 @@ from . import worldgen
 
 # Gym is an optional dependency.
 try:
-  import gymnasium as gym
+  import gym
   DiscreteSpace = gym.spaces.Discrete
   BoxSpace = gym.spaces.Box
   DictSpace = gym.spaces.Dict
   BaseClass = gym.Env
 except ImportError:
+  print("Failed to import gym")
   DiscreteSpace = collections.namedtuple('DiscreteSpace', 'n')
   BoxSpace = collections.namedtuple('BoxSpace', 'low, high, shape, dtype')
   DictSpace = collections.namedtuple('DictSpace', 'spaces')

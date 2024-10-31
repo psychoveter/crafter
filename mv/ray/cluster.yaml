@@ -39,7 +39,7 @@ available_node_types:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
-            VolumeSize: 100
+            VolumeSize: 500
             VolumeType: gp3
       InstanceMarketOptions:
         MarketType: spot

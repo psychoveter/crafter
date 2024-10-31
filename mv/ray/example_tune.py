@@ -77,3 +77,13 @@ def load_tuner():
     # load_tuner()
 
 run_tune_train()
+
+"""
+TODO: 
+ - better flow of running jobs on cluster
+    - how to run job from single script
+        -- git commit -- git push -- remote run get pull && checkout mv-crafter && python run_tune
+    - run tensorboard and forward ports to local 
+    
+ - install dependencies (like opensimplex)
+"""

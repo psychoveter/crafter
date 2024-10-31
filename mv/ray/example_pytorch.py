@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from mv.autoencoder import CrafterEnvAutoencoderV0, CrafterEnvDataset, create_datasets, create_autoencoder
 from mv.utils import get_actual_device, object_weights, index_first_object
 
-torch_object_weights = torch.tensor(object_weights, dtype=torch.float32) #+ (torch.rand(len(object_weights)))
+torch_object_weights = torch.tensor(object_weights, dtype=torch.float32)
 
 def crafter_onehot_loss(input, output):
     """
@@ -100,6 +100,17 @@ def tune_autoencoder(config):
     train_autoencoder(config, is_ray_train = False)
 
 def train_autoencoder(config, is_ray_train = True):
+    """
+    Apex is integrated by
+    https://www.digitalocean.com/community/tutorials/automatic-mixed-precision-using-pytorch
+      1         2       3        38          44
+    16.76728. 0.8512 0.83738. 0.97043.    0.87626
+
+
+    :param config:
+    :param is_ray_train:
+    :return:
+    """
     print(f"Start train_autoencoder loop at cluster {ray.cluster_resources()}, "
           f"torch version is {torch.__version__}, config is {config}")
 
