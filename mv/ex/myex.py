@@ -3,10 +3,11 @@ import numpy as np
 from numpy._typing import ArrayLike
 
 import crafter
-from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid, sample_nparr_onehot, miss_rate_all
+from mv.draw_utils import render_nparr_onehot, draw_image_grid
+from mv.utils import create_nparr_onehot, sample_nparr_onehot, miss_rate_all
 from PIL import Image
 import matplotlib.pyplot as plt
-from mv.utils import objects, get_object_dict
+from mv.const import objects
 
 #%%
 env = crafter.Env()
@@ -19,6 +20,18 @@ img = render_nparr_onehot(arr, env)
 
 img = draw_image_grid([img] * 3)
 Image.fromarray(img).show()
+
+
+#%%
+def crop_field_from_obs(obs):
+    """
+    Get game field from the observation field
+    :param obs: img 64 x 64 x 3
+    :return: image 63 * 49 * 3 with field view
+    """
+
+
+    pass
 
 #%%
 env = crafter.Env()

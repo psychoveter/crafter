@@ -7,11 +7,11 @@ import torch
 from torch.nn.functional import dropout
 from torch.utils.data import DataLoader, Dataset
 import crafter
-from mv.utils import objects,sample_nparr_onehot
+from mv.utils import sample_nparr_onehot
+from mv.const import objects
 
 
-
-class CrafterEnvDataset(Dataset):
+class CrafterDatasetEnv2d(Dataset):
     def __init__(self, env, size, samples_from_world: int = 1000):
         self.env = env
         self.env.reset()
@@ -31,21 +31,21 @@ class CrafterEnvDataset(Dataset):
     def __getitem__(self, idx):
         return self.items[idx]
 
-def create_datasets(train_size: int, test_size: int) -> Tuple[CrafterEnvDataset, CrafterEnvDataset]:
+def create_datasets(train_size: int, test_size: int) -> Tuple[CrafterDatasetEnv2d, CrafterDatasetEnv2d]:
     env = crafter.Env()
-    train_set = CrafterEnvDataset(env, size=train_size)
-    test_set = CrafterEnvDataset(env, size=test_size)
+    train_set = CrafterDatasetEnv2d(env, size=train_size)
+    test_set = CrafterDatasetEnv2d(env, size=test_size)
     return train_set, test_set
 
 
-class EncoderLayer(torch.nn.Module):
+class Encoder2dLayer(torch.nn.Module):
     def __init__(self,
                  channels_in: int,
                  channels_out: int,
                  dropout: float,
                  padding: int = 0,
                  use_batch_norm: bool = True):
-        super(EncoderLayer, self).__init__()
+        super(Encoder2dLayer, self).__init__()
         self.conv = torch.nn.Conv2d(in_channels=channels_in, out_channels=channels_out, kernel_size=3, padding=padding)
         self.dropout = torch.nn.Dropout(dropout)
         if use_batch_norm:
@@ -64,7 +64,7 @@ class EncoderLayer(torch.nn.Module):
             x = self.batch_norm(x)
         return x
 
-class CrafterEnvEncoderV0(torch.nn.Module):
+class CrafterEnvEncoder2dV0(torch.nn.Module):
 
     def __init__(self,
                  channels_size: list[int],
@@ -73,13 +73,13 @@ class CrafterEnvEncoderV0(torch.nn.Module):
                  use_batch_norm: bool = True,
                  # hidden_skip_size: int = 16,
                  ):
-        super(CrafterEnvEncoderV0, self).__init__()
+        super(CrafterEnvEncoder2dV0, self).__init__()
 
-        self.layer1 = EncoderLayer(len(objects),     channels_size[0], dropout, padding=1, use_batch_norm=use_batch_norm) #99 -> 99
-        self.layer2 = EncoderLayer(channels_size[0], channels_size[1], dropout, padding=0, use_batch_norm=use_batch_norm) #99 -> 77
-        self.layer3 = EncoderLayer(channels_size[1], channels_size[2], dropout, padding=1, use_batch_norm=use_batch_norm) #77 -> 77
-        self.layer4 = EncoderLayer(channels_size[2], channels_size[3], dropout, padding=0, use_batch_norm=use_batch_norm) #77 -> 55
-        self.layer5 = EncoderLayer(channels_size[3], channels_size[4], dropout, padding=0, use_batch_norm=use_batch_norm) #55 -> 33
+        self.layer1 = Encoder2dLayer(len(objects), channels_size[0], dropout, padding=1, use_batch_norm=use_batch_norm) #99 -> 99
+        self.layer2 = Encoder2dLayer(channels_size[0], channels_size[1], dropout, padding=0, use_batch_norm=use_batch_norm) #99 -> 77
+        self.layer3 = Encoder2dLayer(channels_size[1], channels_size[2], dropout, padding=1, use_batch_norm=use_batch_norm) #77 -> 77
+        self.layer4 = Encoder2dLayer(channels_size[2], channels_size[3], dropout, padding=0, use_batch_norm=use_batch_norm) #77 -> 55
+        self.layer5 = Encoder2dLayer(channels_size[3], channels_size[4], dropout, padding=0, use_batch_norm=use_batch_norm) #55 -> 33
 
         self.flatten = torch.nn.Flatten()
 
@@ -115,7 +115,7 @@ class CrafterEnvEncoderV0(torch.nn.Module):
         return x
 
 
-class DecoderLayer(torch.nn.Module):
+class Decoder2dLayer(torch.nn.Module):
 
     def __init__(self,
                  channels_in,
@@ -123,7 +123,7 @@ class DecoderLayer(torch.nn.Module):
                  padding=0,
                  dropout: float = 0.0,
                  activation=True):
-        super(DecoderLayer, self).__init__()
+        super(Decoder2dLayer, self).__init__()
         self.activation = activation
 
         self.deconv = torch.nn.ConvTranspose2d(
@@ -154,7 +154,7 @@ class DecoderLayer(torch.nn.Module):
 
         return x
 
-class CrafterEnvDecoderV0(torch.nn.Module):
+class CrafterEnvDecoder2dV0(torch.nn.Module):
     def __init__(self,
                  channels_size: list[int],
                  latent_size: int,
@@ -162,23 +162,23 @@ class CrafterEnvDecoderV0(torch.nn.Module):
                  dropout: float = 0.2,
                  output_logit: bool = False
                  ):
-        super(CrafterEnvDecoderV0, self).__init__()
+        super(CrafterEnvDecoder2dV0, self).__init__()
         self.use_skip = use_skip
         self.output_logit = output_logit
 
         self.linear_conv = torch.nn.Linear(latent_size, channels_size[4] * 3 * 3)
         self.unflatten_conv = torch.nn.Unflatten(dim=1, unflattened_size=(channels_size[4], 3, 3))
-        self.layer5 = DecoderLayer(channels_size[4], channels_size[3], padding=1) # c4 3 3 -> c3 3 3
-        self.layer4 = DecoderLayer(channels_size[3], channels_size[2], padding=0) # c3 3 3 -> c2 5 5
-        self.layer3 = DecoderLayer(channels_size[2], channels_size[1], padding=1) # c2 5 5 -> c1 5 5
-        self.layer2 = DecoderLayer(channels_size[1], channels_size[0], padding=0) # c1 5 5 -> c0 7 7
-        self.layer1 = DecoderLayer(channels_size[0], len(objects), padding=0) #c0 7 7 -> obj 9 9
+        self.layer5 = Decoder2dLayer(channels_size[4], channels_size[3], padding=1) # c4 3 3 -> c3 3 3
+        self.layer4 = Decoder2dLayer(channels_size[3], channels_size[2], padding=0) # c3 3 3 -> c2 5 5
+        self.layer3 = Decoder2dLayer(channels_size[2], channels_size[1], padding=1) # c2 5 5 -> c1 5 5
+        self.layer2 = Decoder2dLayer(channels_size[1], channels_size[0], padding=0) # c1 5 5 -> c0 7 7
+        self.layer1 = Decoder2dLayer(channels_size[0], len(objects), padding=0) #c0 7 7 -> obj 9 9
 
         if use_skip:
             self.linear_skip = torch.nn.Linear(latent_size, len(objects) * 9 * 9)
             self.unflatten_skip = torch.nn.Unflatten(dim=1, unflattened_size=(len(objects), 9, 9))
 
-        self.layer_out = DecoderLayer(len(objects), len(objects), padding=1, activation=False) #obj 9 9 -> obj 9 9
+        self.layer_out = Decoder2dLayer(len(objects), len(objects), padding=1, activation=False) #obj 9 9 -> obj 9 9
         self.bn_out = torch.nn.BatchNorm2d(len(objects))
 
         if not self.output_logit:
@@ -211,7 +211,7 @@ class CrafterEnvDecoderV0(torch.nn.Module):
 
         return x
 
-class CrafterEnvAutoencoderV0(torch.nn.Module):
+class CrafterAutoencoderEnv2dV0(torch.nn.Module):
     def __init__(self,
                  channels_size: list[int],
                  latent_size: int,
@@ -219,15 +219,15 @@ class CrafterEnvAutoencoderV0(torch.nn.Module):
                  decoder_dropout: float = 0.2,
                  use_batch_norm: bool = True,
                  output_logit: bool = False):
-        super(CrafterEnvAutoencoderV0, self).__init__()
-        self.encoder = CrafterEnvEncoderV0(channels_size,
-                                           latent_size=latent_size,
-                                           dropout=encoder_dropout,
-                                           use_batch_norm=use_batch_norm)
-        self.decoder = CrafterEnvDecoderV0(channels_size,
-                                           latent_size=latent_size,
-                                           dropout=decoder_dropout,
-                                           output_logit=output_logit)
+        super(CrafterAutoencoderEnv2dV0, self).__init__()
+        self.encoder = CrafterEnvEncoder2dV0(channels_size,
+                                             latent_size=latent_size,
+                                             dropout=encoder_dropout,
+                                             use_batch_norm=use_batch_norm)
+        self.decoder = CrafterEnvDecoder2dV0(channels_size,
+                                             latent_size=latent_size,
+                                             dropout=decoder_dropout,
+                                             output_logit=output_logit)
 
     def forward(self, x):
         # x shape BS len(object_weights) 9 9
@@ -238,7 +238,7 @@ class CrafterEnvAutoencoderV0(torch.nn.Module):
         return x
 
 
-def create_autoencoder(config, output_logits: bool = False) -> CrafterEnvAutoencoderV0:
+def create_autoencoder(config, output_logits: bool = False) -> CrafterAutoencoderEnv2dV0:
     hidden_channel_0 = int(config['hidden_channel_0'])
     hidden_channel_1 = int(config['hidden_channel_1'])
     hidden_channel_2 = int(config['hidden_channel_2'])
@@ -249,7 +249,7 @@ def create_autoencoder(config, output_logits: bool = False) -> CrafterEnvAutoenc
     decoder_dropout = config['decoder_dropout']
 
 
-    return CrafterEnvAutoencoderV0(
+    return CrafterAutoencoderEnv2dV0(
         channels_size=[hidden_channel_0, hidden_channel_1, hidden_channel_2, hidden_channel_3, hidden_channel_4],
         latent_size=latent_size,
         encoder_dropout=encoder_dropout,

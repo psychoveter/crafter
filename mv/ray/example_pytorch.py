@@ -11,8 +11,9 @@ from ray.train.torch import TorchConfig, TorchTrainer
 import torch
 import torchvision
 from torch.utils.data import DataLoader
-from mv.autoencoder import CrafterEnvAutoencoderV0, CrafterEnvDataset, create_datasets, create_autoencoder
-from mv.utils import get_actual_device, object_weights, index_first_object
+from mv.autoencoder import CrafterAutoencoderEnv2dV0, CrafterDatasetEnv2d, create_datasets, create_autoencoder
+from mv.utils import get_actual_device
+from mv.const import index_first_object, object_weights
 
 torch_object_weights = torch.tensor(object_weights, dtype=torch.float32)
 

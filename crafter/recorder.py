@@ -5,10 +5,8 @@ import pathlib
 import imageio
 import numpy as np
 
-import crafter
 
-
-class Recorder(crafter.Env):
+class Recorder:
 
   def __init__(
       self, env, directory, save_stats=True, save_video=True,
@@ -23,15 +21,10 @@ class Recorder(crafter.Env):
     self._env = env
 
   def __getattr__(self, name):
-    # if name.startswith('reset') \
-    #   or name.startswith('step') \
-    #   or name.startswith('_save') \
-    #   or name.startswith('episode_name'):
-    #   return super.__getattr__(self, name)
-
     if name.startswith('__'):
       raise AttributeError(name)
     return getattr(self._env, name)
+
 
 
 class StatsRecorder(Recorder):
@@ -60,6 +53,7 @@ class StatsRecorder(Recorder):
     return obs
 
   def step(self, action):
+    # print("Stats recorder step")
     obs, reward, done, info = self._env.step(action)
     self._length += 1
     self._reward += info['reward']
@@ -97,6 +91,7 @@ class VideoRecorder(Recorder):
     return obs
 
   def step(self, action):
+    # print("Video recorder step")
     obs, reward, done, info = self._env.step(action)
     self._frames.append(self._env.render(self._size))
     if done:
@@ -132,6 +127,7 @@ class EpisodeRecorder(Recorder):
     # Transitions are defined from the environment perspective, meaning that a
     # transition contains the action and the resulting reward and next
     # observation produced by the environment in response to said action.
+    # print("Episode recorder step")
     obs, reward, done, info = self._env.step(action)
     transition = {
         'action': action, 'image': obs, 'reward': reward, 'done': done,
@@ -182,6 +178,7 @@ class EpisodeName(Recorder):
     return obs
 
   def step(self, action):
+    # print("EpisodeName recorder step")
     obs, reward, done, info = self._env.step(action)
     self._length += 1
     if done:

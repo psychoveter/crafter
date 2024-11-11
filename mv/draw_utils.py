@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from numpy._typing import ArrayLike
 
-from mv.utils import index_first_object, object_keys, objects
+from mv.const import objects, index_first_object, object_keys
 
 
 def plot_image_grid(images, grid_size, figsize=(10, 10), titles=None):

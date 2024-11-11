@@ -6,8 +6,9 @@ import torch
 from torch.utils.data import DataLoader
 
 import crafter
-from mv.utils import create_nparr_onehot, objects, object_weights
-from mv.autoencoder import create_datasets, CrafterEnvAutoencoderV0, CrafterEnvDataset
+from mv.utils import create_nparr_onehot
+from mv.const import objects, object_weights
+from mv.autoencoder import create_datasets, CrafterAutoencoderEnv2dV0, CrafterDatasetEnv2d
 import torch.nn.functional as F
 
 print(f"torch=={torch.__version__}")
@@ -18,7 +19,7 @@ train_set, test_set = create_datasets(100, 100)
 train_loader = DataLoader(train_set, batch_size=16, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=16, shuffle=True)
 
-model = CrafterEnvAutoencoderV0(
+model = CrafterAutoencoderEnv2dV0(
     channels_size=[32, 64, 64, 64, 32],
     latent_size=32
 )

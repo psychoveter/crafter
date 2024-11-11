@@ -12,7 +12,7 @@ from ray.train import ScalingConfig, RunConfig
 from ray.train.torch import TorchConfig, TorchTrainer
 import torch
 from torch.utils.data import DataLoader
-from mv.autoencoder import CrafterEnvAutoencoderV0, CrafterEnvDataset, create_datasets
+from mv.autoencoder import CrafterAutoencoderEnv2dV0, CrafterDatasetEnv2d, create_datasets
 from mv.ray.example_pytorch import tune_autoencoder
 
 search_space = {

@@ -8,7 +8,7 @@ import torch
 import matplotlib
 import PIL.Image as Image
 import crafter
-from mv.autoencoder import create_autoencoder, CrafterEnvAutoencoderV0, load_tune_run
+from mv.autoencoder import create_autoencoder, CrafterAutoencoderEnv2dV0, load_tune_run
 from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid, create_tensor_onehot
 
 results_path     = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results'
