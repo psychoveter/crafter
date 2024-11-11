@@ -1,41 +1,9 @@
 import json
 import os
-from typing import Union, Callable, Tuple, Any, Optional, Dict
 
 import pandas as pd
 import torch
-from torch.nn.functional import dropout
-from torch.utils.data import DataLoader, Dataset
-import crafter
-from mv.utils import sample_nparr_onehot
 from mv.const import objects
-
-
-class CrafterDatasetEnv2d(Dataset):
-    def __init__(self, env, size, samples_from_world: int = 1000):
-        self.env = env
-        self.env.reset()
-
-        self.items = []
-
-        samples = sample_nparr_onehot(size, env, samples_from_world=samples_from_world)
-        for sample in samples:
-            sample = torch.tensor(sample, dtype=torch.float32)
-            sample = sample.contiguous()
-            self.items.append(sample)
-
-
-    def __len__(self):
-        return len(self.items)
-
-    def __getitem__(self, idx):
-        return self.items[idx]
-
-def create_datasets(train_size: int, test_size: int) -> Tuple[CrafterDatasetEnv2d, CrafterDatasetEnv2d]:
-    env = crafter.Env()
-    train_set = CrafterDatasetEnv2d(env, size=train_size)
-    test_set = CrafterDatasetEnv2d(env, size=test_size)
-    return train_set, test_set
 
 
 class Encoder2dLayer(torch.nn.Module):
@@ -70,10 +38,10 @@ class CrafterEnvEncoder2dV0(torch.nn.Module):
                  channels_size: list[int],
                  latent_size: int,
                  dropout: float = 0.2,
-                 use_batch_norm: bool = True,
-                 # hidden_skip_size: int = 16,
+                 use_batch_norm: bool = True
                  ):
         super(CrafterEnvEncoder2dV0, self).__init__()
+        assert len(channels_size) == 5
 
         self.layer1 = Encoder2dLayer(len(objects), channels_size[0], dropout, padding=1, use_batch_norm=use_batch_norm) #99 -> 99
         self.layer2 = Encoder2dLayer(channels_size[0], channels_size[1], dropout, padding=0, use_batch_norm=use_batch_norm) #99 -> 77
@@ -238,7 +206,7 @@ class CrafterAutoencoderEnv2dV0(torch.nn.Module):
         return x
 
 
-def create_autoencoder(config, output_logits: bool = False) -> CrafterAutoencoderEnv2dV0:
+def create_autoencoder_2d(config, output_logits: bool = False) -> CrafterAutoencoderEnv2dV0:
     hidden_channel_0 = int(config['hidden_channel_0'])
     hidden_channel_1 = int(config['hidden_channel_1'])
     hidden_channel_2 = int(config['hidden_channel_2'])
@@ -287,6 +255,6 @@ def load_tune_run(run_folder, checkpoint: str = None):
 
 def load_model(run_folder, checkpoint=None):
     model_state, params = load_tune_run(run_folder, checkpoint)
-    model = create_autoencoder(params)
+    model = create_autoencoder_2d(params)
     model.load_state_dict(model_state)
     return model

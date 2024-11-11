@@ -11,7 +11,8 @@ from ray.train.torch import TorchConfig, TorchTrainer
 import torch
 import torchvision
 from torch.utils.data import DataLoader
-from mv.autoencoder import CrafterAutoencoderEnv2dV0, CrafterDatasetEnv2d, create_datasets, create_autoencoder
+from mv.autoencoder import CrafterAutoencoderEnv2dV0, create_autoencoder_2d
+from mv.datagen import CrafterDatasetEnv2d, create_datasets_2d
 from mv.utils import get_actual_device
 from mv.const import index_first_object, object_weights
 
@@ -122,7 +123,7 @@ def train_autoencoder(config, is_ray_train = True):
     max_epochs = int(config['max_epochs'])
 
     # generate data
-    train_set, test_set = create_datasets(dataset_size, int(dataset_size / 10))
+    train_set, test_set = create_datasets_2d(dataset_size, int(dataset_size / 10))
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True)
 
@@ -130,8 +131,11 @@ def train_autoencoder(config, is_ray_train = True):
     device = get_actual_device()
     # device = torch.device("cpu")
     print(f"Device is {device}")
-    model = create_autoencoder(config, output_logits=True)
+    model = create_autoencoder_2d(config, output_logits=True)
     model.to(device)
+
+    from functorch.experimental import replace_all_batch_norm_modules_
+    replace_all_batch_norm_modules_(model)
 
     # loss_fun = torch.nn.CrossEntropyLoss()
     # loss_fun = crafter_onehot_loss

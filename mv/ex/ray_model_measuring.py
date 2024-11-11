@@ -8,7 +8,7 @@ import torch
 import matplotlib
 import PIL.Image as Image
 import crafter
-from mv.autoencoder import create_autoencoder, CrafterAutoencoderEnv2dV0, load_tune_run
+from mv.autoencoder import create_autoencoder_2d, CrafterAutoencoderEnv2dV0, load_tune_run
 from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid, create_tensor_onehot
 
 results_path     = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results'
@@ -45,7 +45,7 @@ run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/a
 checkpoint=None
 model_state, params = load_tune_run(run_folder, checkpoint=checkpoint)
 print(f"Params for the run {params}")
-model = create_autoencoder(params)
+model = create_autoencoder_2d(params)
 model.load_state_dict(model_state)
 
 env = crafter.Env()

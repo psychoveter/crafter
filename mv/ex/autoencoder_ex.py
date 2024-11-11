@@ -8,14 +8,15 @@ from torch.utils.data import DataLoader
 import crafter
 from mv.utils import create_nparr_onehot
 from mv.const import objects, object_weights
-from mv.autoencoder import create_datasets, CrafterAutoencoderEnv2dV0, CrafterDatasetEnv2d
+from mv.autoencoder import CrafterAutoencoderEnv2dV0
+from mv.datagen import CrafterDatasetEnv2d, create_datasets_2d
 import torch.nn.functional as F
 
 print(f"torch=={torch.__version__}")
 print(f"np=={np.__version__}")
 
 
-train_set, test_set = create_datasets(100, 100)
+train_set, test_set = create_datasets_2d(100, 100)
 train_loader = DataLoader(train_set, batch_size=16, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=16, shuffle=True)
 
