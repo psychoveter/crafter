@@ -1,20 +1,14 @@
-import os
-import tempfile
 from typing import Tuple, Any
 
-import ray
-import ray.train
 import ray.tune as tune
-import ray.train.torch
 from ray.tune import Tuner
 from ray.tune.schedulers import TrialScheduler
-from ray.train import ScalingConfig, RunConfig
-from ray.train.torch import TorchConfig, TorchTrainer
-import torch
-from torch.utils.data import DataLoader
-from mv.autoencoder import CrafterAutoencoderEnv2dV0
-from mv.datagen import CrafterDatasetEnv2d, create_datasets_2d
-from mv.ray.example_pytorch import tune_autoencoder
+from ray.train import RunConfig
+from mv.train.ae2d_train import train_autoencoder
+
+
+def tune_autoencoder(config):
+    train_autoencoder(config, is_ray_train = False)
 
 search_space = {
     'learning_rate': tune.uniform(0.0001, 0.01),
@@ -73,7 +67,7 @@ def load_tuner():
     print(best_result.config)
 
 # if __name__ == "__main__":
-#     ray.init()
+#     train.init()
 #     run_tune_train()
     # load_tuner()
 

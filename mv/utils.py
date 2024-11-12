@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import crafter
 import torch
@@ -123,4 +124,10 @@ def get_actual_device():
 
     return torch.device('cpu')
 
+
+def exec_and_measure(func):
+    start = time.time()
+    result = func()
+    end = time.time()
+    return result, end - start
 

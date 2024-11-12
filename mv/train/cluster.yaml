@@ -12,7 +12,7 @@ provider:
 max_workers: 0
 
 docker:
-  image: rayproject/ray-ml:latest-py311-gpu
+  image: rayproject/train-ml:latest-py311-gpu
   container_name: mv_docker
 
 #file_mounts:
@@ -35,7 +35,7 @@ available_node_types:
     # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
     node_config:
       InstanceType: g5.2xlarge
-      ImageId: ami-0ed442efa816f9a1a # default ray aws image uses outdated cuda version
+      ImageId: ami-0ed442efa816f9a1a # default train aws image uses outdated cuda version
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:

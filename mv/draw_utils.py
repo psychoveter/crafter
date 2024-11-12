@@ -1,9 +1,11 @@
 import numpy as np
+import cv2
 from matplotlib import pyplot as plt
 from numpy._typing import ArrayLike
 
 from mv.const import objects, index_first_object, object_keys
 
+# image tools
 
 def plot_image_grid(images, grid_size, figsize=(10, 10), titles=None):
     """
@@ -57,7 +59,6 @@ def channel_to_img(tensor, channel, side_size=32):
 
     return img.transpose(1,0,2)
 
-
 def render_tensor_onehot(t, env, side_size = 32) -> ArrayLike:
     return render_nparr_onehot(
         t.detach().numpy().round(),
@@ -106,3 +107,50 @@ def render_channels(sample, x, y, side_size=32):
         canvas[:, (i + 1) * side_size + i : (i + 1) * side_size + i + 1, :] = 255
 
     return canvas
+
+
+# video tools
+
+def render_film_np_onehot(arr, env, side_size = 32) -> ArrayLike:
+    assert(len(arr.shape) == 4)
+    l, c, w, h = arr.shape
+    frames = [render_nparr_onehot(arr[i], env, side_size) for i in range(l)]
+    show_video_with_slider(frames, width=side_size*w, height=side_size*h)
+
+def show_video_with_slider(frames, width:int = 512, height:int = 512):
+    """
+    Displays a series of images as a video with a frame slider and optional scaling.
+
+    Parameters:
+    - frames: List or array of images (each of shape (w, h, c)).
+    - scale: Scaling factor for resizing the frames (e.g., 0.5 for half size, 2.0 for double size).
+    """
+    # Number of frames
+    num_frames = len(frames)
+
+    # Window to display frames
+    cv2.namedWindow("Video with Slider")
+
+    # Trackbar callback function to display the selected frame
+    def on_trackbar(val):
+        frame = frames[val]  # Get the frame corresponding to the slider position
+
+        # Resize the frame based on the scale
+        frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_LINEAR)
+
+        frame = frame.astype(np.uint8)  # Ensure it's in uint8 format for display
+        cv2.imshow("Video with Slider", frame)
+
+    # Create a trackbar in the window
+    cv2.createTrackbar("Frame", "Video with Slider", 0, num_frames - 1, on_trackbar)
+
+    # Initial display of the first frame
+    on_trackbar(0)
+
+    # Wait until the user presses 'q' to exit
+    while True:
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Close the window
+    cv2.destroyAllWindows()

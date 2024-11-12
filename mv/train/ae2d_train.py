@@ -5,14 +5,14 @@ import ray
 import ray.train
 import ray.tune
 import ray.train.torch
-from ray.train import ScalingConfig, RunConfig
-from ray.train.torch import TorchConfig, TorchTrainer
+from ray.train import RunConfig
+from ray.train.torch import TorchTrainer
 
 import torch
 import torchvision
 from torch.utils.data import DataLoader
-from mv.autoencoder import CrafterAutoencoderEnv2dV0, create_autoencoder_2d
-from mv.datagen import CrafterDatasetEnv2d, create_datasets_2d
+from mv.model.autoencoder import create_autoencoder_2d
+from mv.datagen import create_datasets_2d
 from mv.utils import get_actual_device
 from mv.const import index_first_object, object_weights
 
@@ -98,8 +98,6 @@ def execute_sample_torch():
     print(f"v3 device: {v3.device}")
 
 
-def tune_autoencoder(config):
-    train_autoencoder(config, is_ray_train = False)
 
 def train_autoencoder(config, is_ray_train = True):
     """
@@ -133,9 +131,6 @@ def train_autoencoder(config, is_ray_train = True):
     print(f"Device is {device}")
     model = create_autoencoder_2d(config, output_logits=True)
     model.to(device)
-
-    from functorch.experimental import replace_all_batch_norm_modules_
-    replace_all_batch_norm_modules_(model)
 
     # loss_fun = torch.nn.CrossEntropyLoss()
     # loss_fun = crafter_onehot_loss

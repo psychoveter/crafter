@@ -10,12 +10,12 @@ Ray AWS config examples
   - https://docs.ray.io/en/latest/cluster/vms/references/ray-cluster-cli.html
 
 Submitting commands
-    ray up -v -y cluster.yaml
-    ray submit cluster.yaml example.py --start 
-    ray down -v -y cluster.yaml
+    train up -v -y cluster.yaml
+    train submit cluster.yaml example.py --start 
+    train down -v -y cluster.yaml
 
 Docker image for Ray GPU 
-rayproject/ray-ml:latest-py311-gpu
+rayproject/train-ml:latest-py311-gpu
 
 """
 
@@ -63,6 +63,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # ray.init(address="localhost:6379")
+    # train.init(address="localhost:6379")
     ray.init()
     main()

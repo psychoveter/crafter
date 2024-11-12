@@ -1,12 +1,10 @@
 #%%
-import numpy as np
 
 import crafter
-from mv.autoencoder import load_model
+from mv.model.autoencoder import load_model
 from mv.utils import create_tensor_onehot
 from mv.const import object_keys
-from mv.draw_utils import render_tensor_onehot, draw_image_grid, plot_image_grid, channel_to_img, render_channels
-import torch.nn.functional as F
+from mv.draw_utils import render_tensor_onehot, plot_image_grid, channel_to_img, render_channels
 import PIL.Image as Image
 
 env = crafter.Env()

@@ -229,7 +229,7 @@ def create_autoencoder_2d(config, output_logits: bool = False) -> CrafterAutoenc
 def load_tune_run(run_folder, checkpoint: str = None):
     """
 
-    :param run_folder: absolute path to the folder with a single train inside ray tune
+    :param run_folder: absolute path to the folder with a single train inside train tune
     :param checkpoint: is not None load specific checkpoint, otherwise load the  best checkpoint
     :return:
     """

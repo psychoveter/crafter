@@ -1,16 +1,11 @@
 #%%
-from typing import Union, Callable, Tuple, Any, Optional, Dict
 
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-import crafter
-from mv.utils import create_nparr_onehot
-from mv.const import objects, object_weights
-from mv.autoencoder import CrafterAutoencoderEnv2dV0
-from mv.datagen import CrafterDatasetEnv2d, create_datasets_2d
-import torch.nn.functional as F
+from mv.model.autoencoder import CrafterAutoencoderEnv2dV0
+from mv.datagen import create_datasets_2d
 
 print(f"torch=={torch.__version__}")
 print(f"np=={np.__version__}")

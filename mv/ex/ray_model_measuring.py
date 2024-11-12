@@ -1,15 +1,10 @@
 #%%
 import os.path
 
-import pandas as pd
-import json
-import ray
-import torch
-import matplotlib
 import PIL.Image as Image
 import crafter
-from mv.autoencoder import create_autoencoder_2d, CrafterAutoencoderEnv2dV0, load_tune_run
-from mv.utils import create_nparr_onehot, render_nparr_onehot, draw_image_grid, create_tensor_onehot
+from mv.model.autoencoder import create_autoencoder_2d, load_tune_run
+from mv.utils import render_nparr_onehot, draw_image_grid, create_tensor_onehot
 
 results_path     = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results'
 tune_folder_path = 'tune_autoencoder_2024-10-25_16-31-11'
