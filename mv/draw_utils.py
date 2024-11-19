@@ -5,7 +5,6 @@ from numpy._typing import ArrayLike
 
 from mv.const import objects, index_first_object, object_keys
 
-# image tools
 
 def plot_image_grid(images, grid_size, figsize=(10, 10), titles=None):
     """
@@ -111,6 +110,18 @@ def render_channels(sample, x, y, side_size=32):
 
 # video tools
 
+def render_tensor_films(first, second, env, side_size = 32):
+    np_first = first.detach().numpy()
+    np_second = second.detach().numpy()
+
+    l, c, w, h = np_first.shape
+
+    frames_first = [render_nparr_onehot(np_first[i], env, side_size) for i in range(l)]
+    frames_second = [render_nparr_onehot(np_second[i], env, side_size) for i in range(l)]
+
+    stacked = np.concatenate((frames_first, frames_second), axis=2)
+    show_video_with_slider(stacked)
+
 def render_film_np_onehot(arr, env, side_size = 32) -> ArrayLike:
     assert(len(arr.shape) == 4)
     l, c, w, h = arr.shape
@@ -126,7 +137,10 @@ def show_video_with_slider(frames, width:int = 512, height:int = 512):
     - scale: Scaling factor for resizing the frames (e.g., 0.5 for half size, 2.0 for double size).
     """
     # Number of frames
-    num_frames = len(frames)
+    num_frames, h, w, c = frames.shape
+    ratio = w / h
+    width = int(height * ratio)
+    print(f"Frames shape: {frames.shape}, ratio: {ratio}")
 
     # Window to display frames
     cv2.namedWindow("Video with Slider")

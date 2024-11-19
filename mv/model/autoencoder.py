@@ -3,6 +3,8 @@ import os
 
 import pandas as pd
 import torch
+from torch._functorch.batch_norm_replacement import replace_all_batch_norm_modules_
+
 from mv.const import objects
 
 
@@ -58,6 +60,7 @@ class CrafterEnvEncoder2dV0(torch.nn.Module):
         self.bn_linear_out = torch.nn.BatchNorm1d(latent_size)
 
     def forward(self, x):
+        print(f"Input shape: {x.shape}")
         source = x
 
         # convolution
@@ -217,13 +220,15 @@ def create_autoencoder_2d(config, output_logits: bool = False) -> CrafterAutoenc
     decoder_dropout = config['decoder_dropout']
 
 
-    return CrafterAutoencoderEnv2dV0(
+    model = CrafterAutoencoderEnv2dV0(
         channels_size=[hidden_channel_0, hidden_channel_1, hidden_channel_2, hidden_channel_3, hidden_channel_4],
         latent_size=latent_size,
         encoder_dropout=encoder_dropout,
         decoder_dropout=decoder_dropout,
         output_logit=output_logits
     )
+    # replace_all_batch_norm_modules_(model)
+    return model
 
 
 def load_tune_run(run_folder, checkpoint: str = None):

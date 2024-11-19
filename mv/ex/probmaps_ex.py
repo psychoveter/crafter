@@ -1,5 +1,4 @@
-#%%
-
+from torch._functorch.batch_norm_replacement import replace_all_batch_norm_modules_
 import crafter
 from mv.model.autoencoder import load_model
 from mv.utils import create_tensor_onehot
@@ -10,12 +9,15 @@ import PIL.Image as Image
 env = crafter.Env()
 env.reset()
 
+# run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_ba171_00000_0_2024-11-13_09-51-36'
 run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_c7c66_00000_0_2024-10-29_18-09-23'
-# run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_ee126_00000_0_2024-10-29_10-46-38'
 
 print(f"run_folder: {run_folder}")
 model = load_model(run_folder)
+# replace_all_batch_norm_modules_(model)
 model.eval()
+for i in model.parameters():
+    print(i.names)
 
 input = create_tensor_onehot(env)
 sample = model(input)
@@ -25,8 +27,6 @@ print(sample.shape)
 source_img = render_tensor_onehot(input[0], env)
 target_img = render_tensor_onehot(sample[0], env)
 # B 3 W H
-
-#%%
 
 images = [
     ("source", source_img),
@@ -55,5 +55,5 @@ plot_image_grid(
     figsize = (12,12)
 )
 
-Image.fromarray(render_channels(sample[0], 5, 5)).show()
-print(sample[0,:,5,5])
+# Image.fromarray(render_channels(sample[0], 5, 5)).show()
+# print(sample[0,:,5,5])

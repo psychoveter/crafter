@@ -67,24 +67,26 @@ class FocalLossCE(torch.nn.Module):
         else:
             return focal_loss
 
-def partite_sigmoid_focal_loss(inputs, targets):
+def partite_sigmoid_focal_loss(inputs, targets, object_alpha = 0.5, reduction='mean'):
     """
     Uses sigmoid focal loss separately on material classes and object classes
     These groups are mutually exclusive.
 
-    :param inputs: BCWH tensor
-    :param targets: BCWH tensor
+    :param inputs: BCHW tensor
+    :param targets: BCHW tensor
     :return:
     """
     material_loss = torchvision.ops.sigmoid_focal_loss(
         inputs[:, :index_first_object, :, :], targets[:, :index_first_object, :, :],
-        reduction="mean"
+        reduction=reduction
     ).sum()
     object_loss = torchvision.ops.sigmoid_focal_loss(
         inputs[:, index_first_object:, :, :], targets[:, index_first_object:, :, :],
-        reduction="mean"
+        reduction=reduction
     ).sum()
-    return material_loss + object_loss
+    loss = (1 - object_alpha) * material_loss + object_alpha * object_loss
+    loss = 2 * loss
+    return loss
 
 def execute_sample_torch():
     print(f"Torch version is {torch.__version__}")

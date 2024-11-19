@@ -10,9 +10,9 @@ Ray AWS config examples
   - https://docs.ray.io/en/latest/cluster/vms/references/ray-cluster-cli.html
 
 Submitting commands
-    train up -v -y cluster.yaml
-    train submit cluster.yaml example.py --start 
-    train down -v -y cluster.yaml
+    ray up -v -y cluster.yaml
+    ray submit cluster.yaml example.py --start 
+    ray down -v -y cluster.yaml
 
 Docker image for Ray GPU 
 rayproject/train-ml:latest-py311-gpu

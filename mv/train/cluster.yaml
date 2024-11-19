@@ -12,7 +12,7 @@ provider:
 max_workers: 0
 
 docker:
-  image: rayproject/train-ml:latest-py311-gpu
+  image: rayproject/ray-ml:latest-py311-gpu
   container_name: mv_docker
 
 #file_mounts:
@@ -41,8 +41,8 @@ available_node_types:
           Ebs:
             VolumeSize: 500
             VolumeType: gp3
-      InstanceMarketOptions:
-        MarketType: spot
+#      InstanceMarketOptions:
+#        MarketType: spot
 
 
   # OB: workers are not used now

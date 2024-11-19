@@ -1,3 +1,4 @@
+import math
 import os
 import tempfile
 
@@ -7,34 +8,29 @@ from ray.air import RunConfig
 from ray.train.torch import TorchTrainer
 import crafter
 from mv.datagen import CrafterAgentDataset3D, create_dataloader_3d
-from mv.model.autoencoder2plus1 import Autoencoder2plus1
+from mv.model.autoencoder import load_model as load_autoencoder_2d
+from mv.model.autoencoder2plus1 import Autoencoder2plus1, load_ae_2plus1
 from mv.train.ae2d_train import partite_sigmoid_focal_loss
 from mv.utils import get_actual_device
 
 
-
-def film_partite_sigmoid_focal_loss(inputs, targets):
-    loss = torch.vmap(func=partite_sigmoid_focal_loss, in_dims=1)
-    loss = loss(inputs, targets)
-    loss = loss.sum()
+def film_partite_sigmoid_focal_loss(inputs, targets, object_alpha=0.7):
+    b, f, c, h, w = inputs.shape
+    inputs = inputs.view(-1, c, h, w)
+    targets = targets.view(-1, c, h, w)
+    loss = partite_sigmoid_focal_loss(inputs, targets, object_alpha=object_alpha)
     return loss
 
 
 def train_ae_2plus1(config):
 
     device = get_actual_device()
-    model = Autoencoder2plus1(
+    model = load_ae_2plus1(
+        ae2d_folder=config['ae2d_folder'],
         film_length=int(config['film_length']),
-        latent_size_2d=int(config['latent_size_2d']),
         latent_size_3d=int(config['latent_size_3d']),
-        channels_size_2d=[
-            int(config['encoder_2d_hidden_channel_0']),
-            int(config['encoder_2d_hidden_channel_1']),
-            int(config['encoder_2d_hidden_channel_2']),
-            int(config['encoder_2d_hidden_channel_3']),
-            int(config['encoder_2d_hidden_channel_4']),
-        ]
     )
+
     model.to(device)
 
     data_loader = create_dataloader_3d(
@@ -43,14 +39,18 @@ def train_ae_2plus1(config):
         int(config['batch_size'])
     )
 
-    loss_fun = film_partite_sigmoid_focal_loss
+    def loss_fun_alpha(inputs, targets):
+        return film_partite_sigmoid_focal_loss(inputs, targets, object_alpha=config['object_alpha'])
+    loss_fun = loss_fun_alpha
 
     def backward_hook(module: torch.nn.Module, grad_input, grad_output):
         print(f"backward hook: {module._get_name()}, input_norm: {torch.norm(grad_input[0])}, output_norm: {torch.norm(grad_output[0])}")
-    model.register_backward_hook(backward_hook)
+    model.encoder1d.register_backward_hook(backward_hook)
+    model.decoder1d.register_backward_hook(backward_hook)
 
     from itertools import chain
-    params = chain(model.encoder1d.parameters(), model.decoder1d.parameters())
+    # params = chain(model.encoder1d.parameters(), model.decoder1d.parameters())
+    params = model.parameters()
     optimizer = torch.optim.AdamW(params, lr=float(config['learning_rate']))
     lr_scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer, int(config['max_epochs']))
 
@@ -59,6 +59,7 @@ def train_ae_2plus1(config):
         for batch in data_loader:
             optimizer.zero_grad()
             batch = batch.to(device)
+            print(f"batch shape: {batch.shape}")
             output = model(batch)
             loss = loss_fun(output, batch)
             loss.backward()
@@ -78,22 +79,23 @@ def train_ae_2plus1(config):
     return max(losses)
 
 def run_ae_2plus1_train():
+    # 'batch_size': 64,
+    # 'dataset_size': 1000,
+    # 'film_length': 8,
+    # 'latent_size_3d': 512,
+    # 'learning_rate': 0.0001,
+    # 'max_epochs': 1000
     config = {
-        'batch_size': 32,
-        'dataset_size': 500,
-        'film_length': 32,
-        'encoder_2d_dropout': 0.3,
-        'decoder_2d_dropout': 0.1,
-        'encoder_2d_hidden_channel_0': 64,
-        'encoder_2d_hidden_channel_1': 96,
-        'encoder_2d_hidden_channel_2': 96,
-        'encoder_2d_hidden_channel_3': 64,
-        'encoder_2d_hidden_channel_4': 32,
-        'latent_size_2d': 64,
-        'latent_size_3d': 256,
-        'learning_rate': 0.001,
-        'max_epochs': 1000
+        'ae2d_folder': '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_c7c66_00000_0_2024-10-29_18-09-23',
+        'batch_size': 256,
+        'dataset_size': 2000,
+        'film_length': 16,
+        'latent_size_3d': 1024,
+        'learning_rate': 0.001 * math.sqrt(256 / 128),
+        'max_epochs': 1000,
+        'object_alpha': 0.7,
     }
+
 
     run_config = RunConfig(storage_path="~/projects/montevideo/crafter/mv/ray_results", name="ae-2plus1-0")
     trainer = TorchTrainer(

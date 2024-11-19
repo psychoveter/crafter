@@ -16,20 +16,17 @@ env.reset()
 
 #%%
 import torch
-from functorch.experimental import replace_all_batch_norm_modules_
 
 
 x = torch.randn(32, 100, 29, 9, 9)
 enc = CrafterEnvEncoder2dV0(channels_size=[16,16,16,16,16], latent_size=32)
-replace_all_batch_norm_modules_(enc)
 
-film_enc = torch.vmap(
-    func=enc,
-    randomness='different'
-)
-output = film_enc(x)
+b, f, c, h, w = x.shape
+x = x.view(-1, c, h, w)
+y = enc(x)
+y = y.view(b, f, -1)
 
-print(output.shape)
+print(y.shape)
 
 #%%
 
