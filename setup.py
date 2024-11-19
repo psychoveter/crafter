@@ -9,7 +9,7 @@ setuptools.setup(
     url='http://github.com/danijar/crafter',
     long_description=pathlib.Path('README.md').read_text(),
     long_description_content_type='text/markdown',
-    packages=['crafter'],
+    packages=['crafter', 'mv'],
     package_data={'crafter': ['data.yaml', 'assets/*']},
     entry_points={'console_scripts': ['crafter=crafter.run_gui:main']},
     install_requires=[
