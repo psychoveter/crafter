@@ -8,3 +8,6 @@ __pycache__/
 .idea/
 logdir/
 crafter_human_dataset/
+
+*.npz
+*.zip
