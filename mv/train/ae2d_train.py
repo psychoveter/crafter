@@ -68,7 +68,7 @@ class FocalLossCE(torch.nn.Module):
         else:
             return focal_loss
 
-def partite_sigmoid_focal_loss(inputs, targets, object_alpha = 0.5, reduction='mean'):
+def partite_sigmoid_focal_loss(inputs, targets, object_alpha = 0.6, reduction='mean'):
     """
     Uses sigmoid focal loss separately on material classes and object classes
     These groups are mutually exclusive.
@@ -181,7 +181,7 @@ def train_autoencoder(config, is_ray_train = True):
 def run_torch_train():
     config = {
             'batch_size': 512,
-            'dataset_size': 15000,
+            'dataset_size': 30000,
             'encoder_dropout': 0.3,
             'decoder_dropout': 0.1,
             'hidden_channel_0': 64,
