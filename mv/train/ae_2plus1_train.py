@@ -4,7 +4,7 @@ import tempfile
 
 import ray
 import torch
-from ray.air import RunConfig
+from ray.air import RunConfig, ScalingConfig
 from ray.train.torch import TorchTrainer
 import crafter
 from mv.datagen import CrafterAgentDataset3D, create_dataloader_3d
@@ -98,9 +98,11 @@ def run_ae_2plus1_train():
 
 
     run_config = RunConfig(storage_path="~/projects/montevideo/crafter/mv/ray_results", name="ae-2plus1-0")
+    scaling_config = ScalingConfig(num_workers=1, use_gpu=True)
     trainer = TorchTrainer(
         train_ae_2plus1,
         train_loop_config=config,
+        scaling_config=scaling_config,
         run_config=run_config
     )
 
