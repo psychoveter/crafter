@@ -42,14 +42,14 @@ class Encoder1d(torch.nn.Module):
 
     def forward(self, x):
         # shape should be BS, C, L
-        print(f"Encoder1 input shape: {x.shape}")
+        # print(f"Encoder1 input shape: {x.shape}")
 
         if self.use_skip:
             x_skip = self.flatten(x)
             x_skip = self.skip_ff(x_skip)
 
         for i, layer in enumerate(self.layers):
-            print(f"Encoder layer {i} shape {x.shape}")
+            # print(f"Encoder layer {i} shape {x.shape}")
             x = layer(x)
         # x = self.layers(x)
 
@@ -93,10 +93,10 @@ class Decoder1d(torch.nn.Module):
             if not i == 0:
                 # print(f"Channel {channels[i]} -> {channels[i - 1]}")
                 # (BS, C_i, L) -> (BS, C_i, L)
-                layers.append(torch.nn.ConvTranspose1d(channels[i], channels[i], kernel_size=5, padding=2, stride=1))
-                layers.append(torch.nn.Dropout(dropout))
-                layers.append(torch.nn.BatchNorm1d(channels[i]))
-                layers.append(torch.nn.ReLU())
+                # layers.append(torch.nn.ConvTranspose1d(channels[i], channels[i], kernel_size=5, padding=2, stride=1))
+                # layers.append(torch.nn.Dropout(dropout))
+                # layers.append(torch.nn.BatchNorm1d(channels[i]))
+                # layers.append(torch.nn.ReLU())
                 # (BS, C_i, L) -> (BS, C_i+1, 2L)
                 layers.append(torch.nn.ConvTranspose1d(channels[i], channels[i-1], kernel_size=5, padding=2, stride=2, output_padding=1))
                 layers.append(torch.nn.Dropout(dropout))
@@ -113,7 +113,7 @@ class Decoder1d(torch.nn.Module):
 
         x = self.unflatten(x)
         for i, l in enumerate(self.layers):
-            print(f"Decoder layer {i}, shape: {x.shape}")
+            # print(f"Decoder layer {i}, shape: {x.shape}")
             x = l(x)
         # x = self.layers(x)
 

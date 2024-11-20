@@ -32,22 +32,19 @@ def sample_and_show(model, env):
 
     Image.fromarray(img).show()
 
-run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_c7c66_00000_0_2024-10-29_18-09-23'
+run_folder = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/ae2d-0/TorchTrainer_9b60c_00000_0_2024-11-19_17-14-36'
 # checkpoint = 'checkpoint_0000120'
 checkpoint=None
 model_state, params = load_tune_run(run_folder, checkpoint=checkpoint)
 print(f"Params for the run {params}")
 model = create_autoencoder_2d(params)
 model.load_state_dict(model_state)
+model.eval()
 
 env = crafter.Env()
 env.reset()
 sample_and_show(model, env)
 
-# def accuracy(model: CrafterEnvAutoencoderV0, num_samples: int):
-#     env = crafter.Env()
-#     env.reset()
-#
 
 """
 Best run with cross entropy loss

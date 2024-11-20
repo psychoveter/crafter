@@ -194,7 +194,7 @@ def run_torch_train():
     }
 
     # scaling_config = ScalingConfig(num_workers=1, use_gpu=True)
-    run_config = RunConfig(storage_path="~/projects/montevideo/crafter/mv/ray_results", name="autoencoder-0")
+    run_config = RunConfig(storage_path="~/projects/montevideo/crafter/mv/ray_results", name="ae2d-0")
 
     trainer = TorchTrainer(
         train_autoencoder,

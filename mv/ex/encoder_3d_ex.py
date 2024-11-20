@@ -30,6 +30,7 @@ model = Autoencoder2plus1(
 model.load_state_dict(model_state)
 model.eval()
 
+print("Try model shape")
 x = torch.randn(4, params['film_length'], 29, 9, 9)
 y = model(x)
 
@@ -40,17 +41,26 @@ root = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter'
 ppo_agent = PPO.load(f"{root}/ppo.zip")
 dataset = CrafterAgentDataset3D(env = env, model = ppo_agent, dataset_size=1, film_length=params['film_length'])
 
+
+def sample_and_show_film():
+    film = dataset[0]
+    batch = torch.Tensor(film)
+    batch = batch.unsqueeze(0)
+
+    print(f"Film batch shape: {batch.shape}")
+    restored = model(batch)
+    print(f"Restored shape: {restored.shape}")
+    render_tensor_films(batch[0], restored[0], env)
+
+
+
 film = dataset[0]
-batch = torch.Tensor(film)
-batch = batch.unsqueeze(0)
 
-print(f"Film batch shape: {batch.shape}")
-restored = model(batch)
-print(f"Restored shape: {restored.shape}")
+x = model.encoder2d(film)
+# norm = torch.norm(x, p=2, dim=1, keepdim=True)
+# x = torch.div(x, norm)
+x = model.decoder2d(x)
 
-# np_film = restored[0].detach().numpy()
-# render_film_np_onehot(np_film, env)
+print(x.shape)
 
-# render_tensor_films(first, second, env)
-
-render_tensor_films(batch[0], restored[0], env)
+render_tensor_films(film, x, env)

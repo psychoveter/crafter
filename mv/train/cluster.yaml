@@ -12,7 +12,8 @@ provider:
 max_workers: 0
 
 docker:
-  image: rayproject/ray-ml:latest-py311-gpu
+#  image: rayproject/ray-ml:latest-py311-gpu
+  image: public.ecr.aws/m0n73v1d30/ray-ml:tmp
   container_name: mv_docker
 
 #file_mounts:

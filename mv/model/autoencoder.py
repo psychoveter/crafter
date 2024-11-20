@@ -79,8 +79,8 @@ class CrafterEnvEncoder2dV0(torch.nn.Module):
         x = x + y
 
         x = self.linear_out(x)
+        x = self.bn_linear_out(x)
         x = torch.nn.functional.relu(x)
-        # x = self.bn_linear_out(x)
         # x = torch.nn.functional.sigmoid(x)
 
         return x
@@ -203,8 +203,8 @@ class CrafterAutoencoderEnv2dV0(torch.nn.Module):
     def forward(self, x):
         # x shape BS len(object_weights) 9 9
         x = self.encoder(x)
-        norm = torch.norm(x, p=2, dim=1, keepdim=True)
-        x = torch.div(x, norm)
+        # norm = torch.norm(x, p=2, dim=1, keepdim=True)
+        # x = torch.div(x, norm)
         x = self.decoder(x)
         return x
 
