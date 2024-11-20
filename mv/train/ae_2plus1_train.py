@@ -86,12 +86,12 @@ def run_ae_2plus1_train():
     # 'learning_rate': 0.0001,
     # 'max_epochs': 1000
     config = {
-        'ae2d_folder': '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/autoencoder-0/TorchTrainer_c7c66_00000_0_2024-10-29_18-09-23',
-        'batch_size': 256,
-        'dataset_size': 2000,
+        'ae2d_folder': f"{os.path.expanduser('~')}/projects/montevideo/crafter/mv/ray_results/ae2d-0/TorchTrainer_7d0b1_00000_0_2024-11-20_05-43-56",
+        'batch_size': 512,
+        'dataset_size': 15000,
         'film_length': 16,
         'latent_size_3d': 1024,
-        'learning_rate': 0.001 * math.sqrt(256 / 128),
+        'learning_rate': 0.001 * math.sqrt(512 / 128),
         'max_epochs': 1000,
         'object_alpha': 0.7,
     }
