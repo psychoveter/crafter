@@ -5,6 +5,7 @@ import ray
 import ray.train
 import ray.tune
 import ray.train.torch
+from ray.air import ScalingConfig
 from ray.train import RunConfig
 from ray.train.torch import TorchTrainer
 
@@ -193,13 +194,13 @@ def run_torch_train():
             'max_epochs': 1000
     }
 
-    # scaling_config = ScalingConfig(num_workers=1, use_gpu=True)
+    scaling_config = ScalingConfig(num_workers=1, use_gpu=True)
     run_config = RunConfig(storage_path="~/projects/montevideo/crafter/mv/ray_results", name="ae2d-0")
 
     trainer = TorchTrainer(
         train_autoencoder,
         train_loop_config=config,
-        # scaling_config=scaling_config,
+        scaling_config=scaling_config,
         run_config=run_config)
 
     trainer.fit()
