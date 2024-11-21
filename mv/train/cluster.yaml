@@ -15,6 +15,9 @@ docker:
 #  image: rayproject/ray-ml:latest-py311-gpu
   image: public.ecr.aws/m0n73v1d30/ray-ml:tmp
   container_name: mv_docker
+  head_run_options:
+    - "-v /home/root/mv-data:/home/ray/projects/montevideo/crafter:z"
+    - "-v /home/root/crafter:/home/ray/crafter:z"
 
 #file_mounts:
 #  /src:~/projects/montevideo/crafter

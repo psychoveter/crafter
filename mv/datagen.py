@@ -120,7 +120,7 @@ def create_dataloader_3d(dataset_size, film_length, batch_size,
                          use_cache: bool = True):
     env = crafter.Env()
     root = f"{os.path.expanduser('~')}/projects/montevideo/crafter"
-    model = PPO.load(f"{root}/ppo.zip")
+    model = PPO.load(f"{root}/ppo")
 
     if use_cache:
         file = f"{root}/ds3d_ds{dataset_size}_fl{film_length}.npz"
