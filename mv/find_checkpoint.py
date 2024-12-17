@@ -18,4 +18,4 @@ if __name__ == '__main__':
 
     progress = pd.read_csv(progress_file)
     sorted = progress.sort_values(by=['loss'], ascending=True)
-    print(sorted.values[0][2])
+    print(f"{run}/{sorted.values[0][2]}")

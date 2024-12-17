@@ -1,3 +1,4 @@
+#%%
 from stable_baselines3 import PPO
 
 from mv.datagen import CrafterAgentDataset3D
@@ -6,8 +7,8 @@ from mv.model.autoencoder import load_tune_run
 from mv.model.autoencoder2plus1 import Autoencoder2plus1
 import torch
 
-# path = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/ae-2plus1-0/TorchTrainer_8f527_00000_0_2024-11-19_13-39-31'
-path = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results_remote/ae-2plus1-0/TorchTrainer_87048_00000_0_2024-11-19_14-29-23'
+path = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results/ae-2plus1-0/TorchTrainer_87048_00000_0_2024-11-19_14-29-23'
+# path = '/Users/Oleg.Bukhvalov/projects/montevideo/crafter/mv/ray_results_remote/ae-2plus1-0/TorchTrainer_87048_00000_0_2024-11-19_14-29-23'
 
 
 model_state, params = load_tune_run(path)
